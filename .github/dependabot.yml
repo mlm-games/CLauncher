@@ -11,7 +11,6 @@ updates:
       - "dependencies"
       - "android"
       - "security"
-    auto-merge: true
 
     
   # Configure updates for GitHub Actions
@@ -20,4 +19,3 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
-    auto-merge: true
