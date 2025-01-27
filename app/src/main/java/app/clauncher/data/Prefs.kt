@@ -101,6 +101,7 @@ class Prefs(context: Context) {
             prefs.edit().setter(key, value).apply()
     }
 
+
     var appTheme by preference(
         AppCompatDelegate.MODE_NIGHT_YES,
         "APP_THEME",
@@ -116,6 +117,10 @@ class Prefs(context: Context) {
     )
 
     // Later can do the rest
+
+    var useSystemFont: Boolean
+        get() = prefs.getBoolean("use_system_font", true)
+        set(value) = prefs.edit().putBoolean("use_system_font", value).apply()
 
     var firstOpenTime: Long
         get() = prefs.getLong(FIRST_OPEN_TIME, 0L)
