@@ -94,10 +94,10 @@ object Constants {
 
     const val MIN_ANIM_REFRESH_RATE = 10f
 
-    const val URL_ABOUT_CLAUNCHER = ""
-    const val URL_CLAUNCHER_PRIVACY = ""
+    const val URL_ABOUT_CLAUNCHER = "https://github.com/mlm-games/CLauncher"
+    const val URL_CLAUNCHER_PRIVACY = "https://github.com/mlm-games/CLauncher"
     const val URL_DOUBLE_TAP = ""
-    const val URL_CLAUNCHER_GITHUB = ""
+    const val URL_CLAUNCHER_GITHUB = "https://github.com/mlm-games/CLauncher"
     const val URL_CLAUNCHER_PLAY_STORE = ""
     const val URL_CLAUNCHER_PRO = ""
     const val URL_PLAY_STORE_DEV = ""

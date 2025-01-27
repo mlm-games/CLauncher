@@ -1,0 +1,21 @@
+name: Dependabot auto-merge
+on: pull_request_target
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  dependabot:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    steps:
+      # - name: Dependabot metadata
+      #   id: metadata
+      #   uses: dependabot/fetch-metadata@v1
+      #   with:
+      #     github-token: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Enable auto-merge for Dependabot PRs
+        # if: ${{steps.metadata.outputs.update-type != 'version-update:semver-major'}}
+        uses: fastify/github-action-merge-dependabot@v3

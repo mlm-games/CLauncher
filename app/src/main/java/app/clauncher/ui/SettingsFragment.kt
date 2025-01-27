@@ -82,6 +82,7 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
         //populateActionHints()
         initClickListeners()
         initObservers()
+        populateSystemFontText()
     }
 
     override fun onClick(view: View) {
@@ -94,6 +95,7 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
             binding.alignmentSelectLayout.visibility = View.GONE
 
         when (view.id) {
+            R.id.systemFont -> toggleSystemFont()
             R.id.clauncherHiddenApps -> showHiddenApps()
             //R.id.clauncherPro -> requireContext().openUrl(Constants.URL_CLAUNCHER_PRO)
             //R.id.digitalWellbeing -> viewModel.showDialog.postValue(Constants.Dialog.DIGITAL_WELLBEING)
@@ -161,10 +163,10 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
                 requireActivity().rateApp()
             }
 
-            R.id.twitter -> requireContext().openUrl(Constants.URL_TWITTER_TANUJ)
+            // R.id.twitter -> requireContext().openUrl(Constants.URL_TWITTER_TANUJ)
             R.id.github -> requireContext().openUrl(Constants.URL_CLAUNCHER_GITHUB)
             R.id.privacy -> requireContext().openUrl(Constants.URL_CLAUNCHER_PRIVACY)
-            R.id.footer -> requireContext().openUrl(Constants.URL_PLAY_STORE_DEV)
+            // R.id.footer -> requireContext().openUrl(Constants.URL_PLAY_STORE_DEV)
         }
     }
 
@@ -223,13 +225,14 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
         binding.actionAccessibility.setOnClickListener(this)
         binding.closeAccessibility.setOnClickListener(this)
         binding.notWorking.setOnClickListener(this)
+        binding.systemFont?.setOnClickListener(this)
 
-        binding.share.setOnClickListener(this)
-        binding.rate.setOnClickListener(this)
-        binding.twitter.setOnClickListener(this)
-        binding.github.setOnClickListener(this)
-        binding.privacy.setOnClickListener(this)
-        binding.footer.setOnClickListener(this)
+//        binding.share.setOnClickListener(this)
+//        binding.rate.setOnClickListener(this)
+//        binding.twitter.setOnClickListener(this)
+//        binding.github.setOnClickListener(this)
+//        binding.privacy.setOnClickListener(this)
+//        binding.footer.setOnClickListener(this)
 
         binding.maxApps0.setOnClickListener(this)
         binding.maxApps1.setOnClickListener(this)
@@ -275,6 +278,12 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
         }
     }
 
+    private fun toggleSystemFont() {
+        prefs.useSystemFont = !prefs.useSystemFont
+
+        // requireActivity().recreate()   Do you Need this to update font after changing?
+    }
+
     private fun toggleSwipeLeft() {
         prefs.swipeLeftEnabled = !prefs.swipeLeftEnabled
         if (prefs.swipeLeftEnabled) {
@@ -316,6 +325,11 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
         prefs.dateTimeVisibility = selected
         populateDateTime()
         viewModel.toggleDateTime()
+    }
+
+    private fun populateSystemFontText() {
+        binding.systemFont?.text = if (prefs.useSystemFont)
+            getString(R.string.on) else getString(R.string.off)
     }
 
     private fun populateDateTime() {

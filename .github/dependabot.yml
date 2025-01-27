@@ -11,6 +11,7 @@ updates:
       - "dependencies"
       - "android"
       - "security"
+
     
   # Configure updates for GitHub Actions
   - package-ecosystem: "github-actions"
@@ -18,5 +19,3 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
-
-  
