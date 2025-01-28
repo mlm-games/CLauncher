@@ -11,7 +11,7 @@ android {
         abi {
             enable true
             reset()
-            include 'arm64-v8a', 'armeabi-v7a', 'x86', 'x86_64'
+            include project.hasProperty('targetAbi') ? project.property('targetAbi') : ['arm64-v8a', 'armeabi-v7a', 'x86', 'x86_64']
             universalApk false
         }
     }
