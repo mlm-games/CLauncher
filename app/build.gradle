@@ -4,14 +4,18 @@ plugins {
 }
 
 android {
-    
-    compileSdk 34
+
+    compileSdk 35
 
     splits {
         abi {
             enable true
             reset()
-            include project.hasProperty('targetAbi') ? project.property('targetAbi') : ['arm64-v8a', 'armeabi-v7a', 'x86', 'x86_64']
+            if (project.hasProperty('targetAbi')) {
+                include project.property('targetAbi')
+            } else {
+                include "arm64-v8a", "armeabi-v7a", "x86", "x86_64"
+            }
             universalApk false
         }
     }
@@ -28,9 +32,9 @@ android {
     defaultConfig {
         applicationId 'app.clauncher'
         minSdkVersion 24
-        targetSdkVersion 34
-        versionCode 330
-        versionName "v5.2.1"
+        targetSdkVersion 35
+        versionCode 320
+        versionName "v5.2.0"
 
         resourceConfigurations += ["en", "ar", "de", "es-rES", "es-rUS", "fr", "hr", "hu", "in", "it", "ja", "pl", "pt-rBR", "ru-rRU", "sv", "tr", "uk", "zh"]
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -82,6 +86,7 @@ android {
     dependenciesInfo {
         includeInApk = false
     }
+    buildToolsVersion '35.0.0'
 }
 
 // Configure all tasks that are instances of AbstractArchiveTask
