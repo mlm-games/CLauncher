@@ -10,12 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.actor == 'dependabot[bot]' }}
     steps:
-      # - name: Dependabot metadata
-      #   id: metadata
-      #   uses: dependabot/fetch-metadata@v1
-      #   with:
-      #     github-token: "${{ secrets.GITHUB_TOKEN }}"
-
       - name: Enable auto-merge for Dependabot PRs
-        # if: ${{steps.metadata.outputs.update-type != 'version-update:semver-major'}}
         uses: fastify/github-action-merge-dependabot@v3
+        with:
+          github-token: ${{secrets.GH_TOKEN}}
+          merge-method: squash
+          target: minor
