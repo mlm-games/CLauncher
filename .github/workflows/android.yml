@@ -103,6 +103,7 @@ jobs:
       - name: Build APK for ${{ matrix.arch }}
         run: |
           ./gradlew assembleRelease \
+            -PtargetAbi=${{ matrix.arch }} \
             -Pandroid.injected.signing.store.file=$PWD/release.keystore \
             -Pandroid.injected.signing.store.password=${{ secrets.STORE_PASSWORD }} \
             -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
