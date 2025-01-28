@@ -61,7 +61,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField "Long", "BUILD_TIME", "0L"
             shrinkResources true
-            zipAlignEnabled true
             vcsInfo.include false
         }
         debug {
@@ -118,7 +117,7 @@ dependencies {
 tasks.register('verifyReleaseApk') {
     dependsOn 'assembleRelease'
     doLast {
-        def apkDir = new File("${buildDir}/outputs/apk/release/")
+        def apkDir = new File("${layout.buildDirectory.get()}/outputs/apk/release/")
         def androidSdkPath = android.getSdkDirectory().getAbsolutePath()
         def buildToolsVersion = android.getBuildToolsVersion()
         def apksignerPath = "${androidSdkPath}/build-tools/${buildToolsVersion}/apksigner"
