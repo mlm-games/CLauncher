@@ -11,7 +11,7 @@ android {
         abi {
             enable true
             reset()
-            include 'arm64-v8a', 'armeabi-v7a', 'x86', 'x86_64'
+            include project.hasProperty('targetAbi') ? project.property('targetAbi') : ['arm64-v8a', 'armeabi-v7a', 'x86', 'x86_64']
             universalApk false
         }
     }
@@ -29,8 +29,8 @@ android {
         applicationId 'app.clauncher'
         minSdkVersion 24
         targetSdkVersion 34
-        versionCode 320
-        versionName "v5.1.4"
+        versionCode 330
+        versionName "v5.2.1"
 
         resourceConfigurations += ["en", "ar", "de", "es-rES", "es-rUS", "fr", "hr", "hu", "in", "it", "ja", "pl", "pt-rBR", "ru-rRU", "sv", "tr", "uk", "zh"]
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

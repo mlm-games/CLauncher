@@ -25,6 +25,9 @@ jobs:
       base_version_code: ${{ steps.version.outputs.version_code }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+      
       - id: version
         run: |
           OLD_VERSION_CODE=$(grep "versionCode" $BUILD_GRADLE_PATH | head -1 | grep -oE '[0-9]+')
@@ -54,7 +57,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git add $BUILD_GRADLE_PATH
           git commit -m "Bump version to $NEW_VERSION_NAME (code: $NEW_VERSION_CODE) [skip ci]" || echo "No changes to commit"
-          git push
+          git push --force
 
   build-and-release:
     needs: prepare-version
@@ -100,6 +103,7 @@ jobs:
       - name: Build APK for ${{ matrix.arch }}
         run: |
           ./gradlew assembleRelease \
+            -PtargetAbi=${{ matrix.arch }} \
             -Pandroid.injected.signing.store.file=$PWD/release.keystore \
             -Pandroid.injected.signing.store.password=${{ secrets.STORE_PASSWORD }} \
             -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
