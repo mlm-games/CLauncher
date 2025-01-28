@@ -25,6 +25,9 @@ jobs:
       base_version_code: ${{ steps.version.outputs.version_code }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+      
       - id: version
         run: |
           OLD_VERSION_CODE=$(grep "versionCode" $BUILD_GRADLE_PATH | head -1 | grep -oE '[0-9]+')
