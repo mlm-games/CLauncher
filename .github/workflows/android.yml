@@ -54,7 +54,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git add $BUILD_GRADLE_PATH
           git commit -m "Bump version to $NEW_VERSION_NAME (code: $NEW_VERSION_CODE) [skip ci]" || echo "No changes to commit"
-          git push
+          git push --force
 
   build-and-release:
     needs: prepare-version
