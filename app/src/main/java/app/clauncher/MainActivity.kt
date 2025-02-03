@@ -79,8 +79,12 @@ class MainActivity : AppCompatActivity() {
         super.onStop()
     }
 
+
     override fun onUserLeaveHint() {
-        backToHomeScreen()
+        // Only go home if not switching apps?
+        if (!isChangingConfigurations) {
+            backToHomeScreen()
+        }
         super.onUserLeaveHint()
     }
 
