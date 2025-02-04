@@ -89,7 +89,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onNewIntent(intent: Intent?) {
-        backToHomeScreen()
+        // Check if this is an app switch intent
+        if (intent?.action != Intent.ACTION_MAIN ||
+            intent.hasCategory(Intent.CATEGORY_HOME)) {
+            backToHomeScreen()
+        }
         super.onNewIntent(intent)
     }
 
