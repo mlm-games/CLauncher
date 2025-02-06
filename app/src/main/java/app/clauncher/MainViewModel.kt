@@ -8,32 +8,20 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.LauncherApps
 import android.os.Build
-import android.os.UserHandle
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import androidx.work.BackoffPolicy
-import androidx.work.Constraints
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.NetworkType
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
 import app.clauncher.data.AppModel
 import app.clauncher.data.Constants
-import app.clauncher.data.Constants.ONE_DAY_IN_MILLIS
 import app.clauncher.data.Prefs
 import app.clauncher.helper.SingleLiveEvent
-import app.clauncher.helper.formattedTimeSpent
 import app.clauncher.helper.getAppsList
-import app.clauncher.helper.showToast
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
-import java.util.concurrent.TimeUnit
 
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -48,7 +36,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val updateSwipeApps = MutableLiveData<Any>()
     val appList = MutableLiveData<List<AppModel>?>()
     val hiddenApps = MutableLiveData<List<AppModel>?>()
-    val isCLauncherDefault = MutableLiveData<Boolean>()
     val launcherResetFailed = MutableLiveData<Boolean>()
     val homeAppAlignment = MutableLiveData<Int>()
     val screenTimeValue = MutableLiveData<String>()
@@ -59,13 +46,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     // View state management?
     sealed class ViewState {
-        object Loading : ViewState()
         data class Success(val data: Any) : ViewState()
         data class Error(val message: String) : ViewState()
     }
 
     private val _viewState = MutableLiveData<ViewState>()
-    val viewState: LiveData<ViewState> = _viewState
 
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, exception ->
         _viewState.postValue(ViewState.Error(exception.message ?: "An error occurred"))
@@ -260,7 +245,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 return@launch
             }
 
-            val stats = getUsageStats()
+            getUsageStats()
             _viewState.postValue(ViewState.Success("Hi"))
         }
     }
@@ -288,16 +273,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 }
 
 object LauncherUtils {
-    private const val MINUTE_IN_MILLIS = 60_000L
-    private const val HOUR_IN_MILLIS = 3_600_000L
 
-    fun formatScreenTime(timeInMillis: Long): String = when {
-        timeInMillis < MINUTE_IN_MILLIS -> "Less than a minute"
-        timeInMillis < HOUR_IN_MILLIS -> "${timeInMillis / MINUTE_IN_MILLIS}m"
-        else -> "${timeInMillis / HOUR_IN_MILLIS}h ${(timeInMillis % HOUR_IN_MILLIS) / MINUTE_IN_MILLIS}m"
-    }
-
-//    fun hasRequiredPermissions(context: Context): Boolean {
+    //    fun hasRequiredPermissions(context: Context): Boolean {
 //        return hasUsageStatsPermission(context) &&
 //                hasAccessibilityPermission(context)
 //    }

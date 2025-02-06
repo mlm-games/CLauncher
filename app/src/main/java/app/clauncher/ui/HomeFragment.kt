@@ -30,7 +30,6 @@ import app.clauncher.databinding.FragmentHomeBinding
 import app.clauncher.helper.appUsagePermissionGranted
 import app.clauncher.helper.dpToPx
 import app.clauncher.helper.expandNotificationDrawer
-import app.clauncher.helper.getChangedAppTheme
 import app.clauncher.helper.getUserHandleFromString
 import app.clauncher.helper.isPackageInstalled
 import app.clauncher.helper.openAlarmApp
@@ -38,7 +37,6 @@ import app.clauncher.helper.openCalendar
 import app.clauncher.helper.openCameraApp
 import app.clauncher.helper.openDialerApp
 import app.clauncher.helper.openSearch
-import app.clauncher.helper.setPlainWallpaperByTheme
 import app.clauncher.helper.showToast
 import app.clauncher.listener.OnSwipeTouchListener
 import app.clauncher.listener.ViewSwipeTouchListener
@@ -187,15 +185,31 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
 
     private fun initSwipeTouchListener() {
         val context = requireContext()
-        binding.mainLayout.setOnTouchListener(getSwipeGestureListener(context))
-        binding.homeApp1.setOnTouchListener(getViewSwipeTouchListener(context, binding.homeApp1))
-        binding.homeApp2.setOnTouchListener(getViewSwipeTouchListener(context, binding.homeApp2))
-        binding.homeApp3.setOnTouchListener(getViewSwipeTouchListener(context, binding.homeApp3))
-        binding.homeApp4.setOnTouchListener(getViewSwipeTouchListener(context, binding.homeApp4))
-        binding.homeApp5.setOnTouchListener(getViewSwipeTouchListener(context, binding.homeApp5))
-        binding.homeApp6.setOnTouchListener(getViewSwipeTouchListener(context, binding.homeApp6))
-        binding.homeApp7.setOnTouchListener(getViewSwipeTouchListener(context, binding.homeApp7))
-        binding.homeApp8.setOnTouchListener(getViewSwipeTouchListener(context, binding.homeApp8))
+
+        val homeApps = listOf(
+            binding.homeApp1,
+            binding.homeApp2,
+            binding.homeApp3,
+            binding.homeApp4,
+            binding.homeApp5,
+            binding.homeApp6,
+            binding.homeApp7,
+            binding.homeApp8
+        )
+
+        binding.mainLayout.apply {
+            setOnTouchListener(getSwipeGestureListener(context))
+            isClickable = true
+            isFocusable = true
+        }
+
+        homeApps.forEach { homeApp ->
+            homeApp.apply {
+                setOnTouchListener(getViewSwipeTouchListener(context, this))
+                isClickable = true
+                isFocusable = true
+            }
+        }
     }
 
     private fun initClickListeners() {
@@ -212,14 +226,19 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         val verticalGravity = if (prefs.homeBottomAlignment) Gravity.BOTTOM else Gravity.CENTER_VERTICAL
         binding.homeAppsLayout.gravity = horizontalGravity or verticalGravity
         binding.dateTimeLayout.gravity = horizontalGravity
-        binding.homeApp1.gravity = horizontalGravity
-        binding.homeApp2.gravity = horizontalGravity
-        binding.homeApp3.gravity = horizontalGravity
-        binding.homeApp4.gravity = horizontalGravity
-        binding.homeApp5.gravity = horizontalGravity
-        binding.homeApp6.gravity = horizontalGravity
-        binding.homeApp7.gravity = horizontalGravity
-        binding.homeApp8.gravity = horizontalGravity
+
+        listOf(
+            binding.homeApp1,
+            binding.homeApp2,
+            binding.homeApp3,
+            binding.homeApp4,
+            binding.homeApp5,
+            binding.homeApp6,
+            binding.homeApp7,
+            binding.homeApp8
+        ).forEach { textView ->
+            (textView as TextView).gravity = horizontalGravity
+        }
     }
 
     private fun populateDateTime() {
@@ -333,12 +352,13 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         }
     }
 
-    private fun setHomeAppText(textView: TextView, appName: String, packageName: String, userString: String): Boolean {
+    private fun setHomeAppText(textView: View, appName: String, packageName: String, userString: String): Boolean {
+        val tv = textView as TextView
         if (isPackageInstalled(requireContext(), packageName, userString)) {
-            textView.text = appName
+            tv.text = appName
             return true
         }
-        textView.text = ""
+        tv.text = ""
         return false
     }
 
@@ -552,7 +572,4 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-    }
 }
