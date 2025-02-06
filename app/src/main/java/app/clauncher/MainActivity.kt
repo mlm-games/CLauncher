@@ -54,7 +54,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         navController = Navigation.findNavController(this, R.id.nav_host_fragment)
-        viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
         if (prefs.firstOpen) {
             viewModel.firstOpen(true)
             prefs.firstOpen = false
@@ -68,10 +68,6 @@ class MainActivity : AppCompatActivity() {
         setupOrientation()
 
         window.addFlags(FLAG_LAYOUT_NO_LIMITS)
-    }
-
-    override fun onResume() {
-        super.onResume()
     }
 
     override fun onStop() {

@@ -10,10 +10,12 @@ import android.content.Intent
 import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
 import android.content.res.Resources
+import android.hardware.display.DisplayManager
 import android.net.Uri
 import android.os.Build
 import android.os.UserHandle
 import android.provider.Settings
+import android.view.Display
 import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
@@ -21,19 +23,24 @@ import androidx.annotation.RequiresApi
 import app.clauncher.R
 import app.clauncher.data.Constants
 
-fun View.hideKeyboard() {
-    this.clearFocus()
-    val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-    imm.hideSoftInputFromWindow(windowToken, 0)
+fun View.showKeyboard(show: Boolean = true) {
+    if (!show) return
+
+    if (this.requestFocus()) {
+        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        postDelayed({
+            imm.showSoftInput(
+                this,
+                InputMethodManager.SHOW_IMPLICIT
+            )
+        }, 100)
+    }
 }
 
-fun View.showKeyboard(show: Boolean = true) {
-    if (show.not()) return
-    if (this.requestFocus())
-        postDelayed({
-            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY)
-        }, 100)
+
+fun View.hideKeyboard() {
+    val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+    imm.hideSoftInputFromWindow(windowToken, 0)
 }
 
 
@@ -87,8 +94,19 @@ fun Context.openSearch(query: String? = null) {
 
 fun Context.isEinkDisplay(): Boolean {
     return try {
-        val windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        windowManager.defaultDisplay.refreshRate <= Constants.MIN_ANIM_REFRESH_RATE
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Modern API (Android 11+)
+            val display = display
+            val refreshRate = (getSystemService(Context.DISPLAY_SERVICE) as DisplayManager)
+                .getDisplay(Display.DEFAULT_DISPLAY)
+                .refreshRate
+            refreshRate <= Constants.MIN_ANIM_REFRESH_RATE
+        } else {
+            // Legacy API (pre-Android 11)
+            @Suppress("DEPRECATION")
+            val display = (getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay
+            display.refreshRate <= Constants.MIN_ANIM_REFRESH_RATE
+        }
     } catch (e: Exception) {
         e.printStackTrace()
         false
