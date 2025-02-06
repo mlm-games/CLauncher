@@ -96,7 +96,6 @@ fun Context.isEinkDisplay(): Boolean {
     return try {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // Modern API (Android 11+)
-            val display = display
             val refreshRate = (getSystemService(Context.DISPLAY_SERVICE) as DisplayManager)
                 .getDisplay(Display.DEFAULT_DISPLAY)
                 .refreshRate
