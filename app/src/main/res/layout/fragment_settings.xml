@@ -1016,7 +1016,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="?attr/dialogShadeColor"
-        android:clickable="true"
         android:clipToPadding="false"
         android:focusable="true"
         android:padding="20dp"
@@ -1047,7 +1046,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:clickable="false"
                 android:text="@string/accessibility_disclosure"
                 android:textColor="?attr/primaryColor" />
 
