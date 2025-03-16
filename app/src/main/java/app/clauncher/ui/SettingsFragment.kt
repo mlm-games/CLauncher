@@ -115,7 +115,10 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
             R.id.dateTimeOn -> toggleDateTime(Constants.DateTime.ON)
             R.id.dateTimeOff -> toggleDateTime(Constants.DateTime.OFF)
             R.id.dateOnly -> toggleDateTime(Constants.DateTime.DATE_ONLY)
-            R.id.appThemeText -> binding.appThemeSelectLayout.visibility = View.VISIBLE
+            R.id.appThemeText -> {
+                binding.appThemeSelectLayout.visibility = View.VISIBLE
+                binding.themeSystem.visibility = View.VISIBLE
+            }
             R.id.themeLight -> updateTheme(AppCompatDelegate.MODE_NIGHT_NO)
             R.id.themeDark -> updateTheme(AppCompatDelegate.MODE_NIGHT_YES)
             R.id.themeSystem -> updateTheme(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
@@ -160,10 +163,6 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
                 requireContext().showToast(getString(R.string.alignment_changed))
             }
 
-            R.id.appThemeText -> {
-                binding.appThemeSelectLayout.visibility = View.VISIBLE
-                binding.themeSystem.visibility = View.VISIBLE
-            }
 
             R.id.swipeLeftApp -> toggleSwipeLeft()
             R.id.swipeRightApp -> toggleSwipeRight()
@@ -214,7 +213,7 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
 //        binding.twitter.setOnClickListener(this)
 //        binding.github.setOnClickListener(this)
 //        binding.privacy.setOnClickListener(this)
-//        binding.footer.setOnClickListener(this)
+        binding.footer.setOnClickListener(this)
 
         binding.maxApps0.setOnClickListener(this)
         binding.maxApps1.setOnClickListener(this)
@@ -235,7 +234,6 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
         binding.textSize7.setOnClickListener(this)
 
         binding.alignment.setOnLongClickListener(this)
-        binding.appThemeText.setOnLongClickListener(this)
         binding.swipeLeftApp.setOnLongClickListener(this)
         binding.swipeRightApp.setOnLongClickListener(this)
         binding.toggleLock.setOnLongClickListener(this)
