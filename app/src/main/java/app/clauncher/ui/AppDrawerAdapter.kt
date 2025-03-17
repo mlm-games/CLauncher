@@ -1,7 +1,6 @@
 package app.clauncher.ui
 
 import android.content.Context
-import android.os.UserHandle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -47,7 +46,6 @@ class AppDrawerAdapter(
     private var autoLaunch = true
     private var isBangSearch = false
     private val appFilter = createAppFilter()
-    private val myUserHandle = android.os.Process.myUserHandle()
 
     var appsList: MutableList<AppModel> = mutableListOf()
     var appFilteredList: MutableList<AppModel> = mutableListOf()
@@ -64,7 +62,6 @@ class AppDrawerAdapter(
             holder.bind(
                 flag,
                 appLabelGravity,
-                myUserHandle,
                 appModel,
                 appClickListener,
                 appDeleteListener,
@@ -151,7 +148,6 @@ class AppDrawerAdapter(
         fun bind(
             flag: Int,
             appLabelGravity: Int,
-            myUserHandle: UserHandle,
             appModel: AppModel,
             clickListener: (AppModel) -> Unit,
             appDeleteListener: (AppModel) -> Unit,
@@ -198,7 +194,7 @@ class AppDrawerAdapter(
                             renameLayout.visibility = View.VISIBLE
                             appHideLayout.visibility = View.GONE
                             etAppRename.showKeyboard()
-                            etAppRename.imeOptions = EditorInfo.IME_ACTION_DONE;
+                            etAppRename.imeOptions = EditorInfo.IME_ACTION_DONE
                         }
                     }
                     etAppRename.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->

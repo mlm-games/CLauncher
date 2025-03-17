@@ -7,18 +7,16 @@ import android.app.role.RoleManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
 import android.content.res.Resources
-import android.net.Uri
+import android.hardware.display.DisplayManager
 import android.os.Build
-import android.os.UserHandle
 import android.provider.Settings
+import android.view.Display
 import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import androidx.annotation.RequiresApi
-import app.clauncher.R
 import app.clauncher.data.Constants
 
 fun View.hideKeyboard() {
@@ -26,16 +24,15 @@ fun View.hideKeyboard() {
     val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
     imm.hideSoftInputFromWindow(windowToken, 0)
 }
-
+@Suppress("DEPRECATION")
 fun View.showKeyboard(show: Boolean = true) {
-    if (show.not()) return
+    if (!show) return
     if (this.requestFocus())
         postDelayed({
             val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
             imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY)
         }, 100)
 }
-
 
 @RequiresApi(Build.VERSION_CODES.Q)
 fun Activity.showLauncherSelector(requestCode: Int) {
@@ -68,11 +65,6 @@ fun Context.resetDefaultLauncher() {
     }
 }
 
-fun Context.isDefaultLauncher(): Boolean {
-   val launcherPackageName = getDefaultLauncherPackage(this)
-    return applicationContext.packageName == launcherPackageName
-}
-
 fun Context.resetLauncherViaFakeActivity() {
     resetDefaultLauncher()
     if (getDefaultLauncherPackage(this).contains("."))
@@ -87,37 +79,22 @@ fun Context.openSearch(query: String? = null) {
 
 fun Context.isEinkDisplay(): Boolean {
     return try {
-        val windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        windowManager.defaultDisplay.refreshRate <= Constants.MIN_ANIM_REFRESH_RATE
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Modern API (Android 11+)
+            val refreshRate = (getSystemService(Context.DISPLAY_SERVICE) as DisplayManager)
+                .getDisplay(Display.DEFAULT_DISPLAY)
+                .refreshRate
+            refreshRate <= Constants.MIN_ANIM_REFRESH_RATE
+        } else {
+            // Legacy API (pre-Android 11)
+            @Suppress("DEPRECATION")
+            val display = (getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay
+            display.refreshRate <= Constants.MIN_ANIM_REFRESH_RATE
+        }
     } catch (e: Exception) {
         e.printStackTrace()
         false
     }
-}
-
-fun Context.searchOnPlayStore(query: String? = null): Boolean {
-    return try {
-        startActivity(
-            Intent(
-                Intent.ACTION_VIEW,
-                Uri.parse("https://play.google.com/store/search?q=$query&c=apps")
-            ).addFlags(
-                Intent.FLAG_ACTIVITY_NO_HISTORY or
-                        Intent.FLAG_ACTIVITY_NEW_DOCUMENT or
-                        Intent.FLAG_ACTIVITY_MULTIPLE_TASK
-            )
-        )
-        true
-    } catch (e: Exception) {
-        e.printStackTrace()
-        false
-    }
-}
-
-fun Context.isPackageInstalled(packageName: String, userHandle: UserHandle = android.os.Process.myUserHandle()): Boolean {
-    val launcher = getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-    val activityInfo = launcher.getActivityList(packageName, userHandle)
-    return activityInfo.size > 0
 }
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -129,34 +106,6 @@ fun Context.appUsagePermissionGranted(): Boolean {
         packageName
     ) == AppOpsManager.MODE_ALLOWED
 }
-
-fun Context.formattedTimeSpent(timeSpent: Long): String {
-    val seconds = timeSpent / 1000
-    val minutes = seconds / 60
-    val hours = minutes / 60
-    val remainingMinutes = minutes % 60
-    return when {
-        timeSpent == 0L -> "0m"
-
-        hours > 0 -> getString(
-            R.string.time_spent_hour,
-            hours.toString(),
-            remainingMinutes.toString()
-        )
-
-        minutes > 0 -> {
-            getString(R.string.time_spent_min, minutes.toString())
-        }
-
-        else -> "<1m"
-    }
-}
-
-fun Long.hasBeenDays(days: Int): Boolean =
-    ((System.currentTimeMillis() - this) / Constants.ONE_DAY_IN_MILLIS) >= days
-
-fun Long.hasBeenHours(hours: Int): Boolean =
-    ((System.currentTimeMillis() - this) / Constants.ONE_HOUR_IN_MILLIS) >= hours
 
 fun Int.dpToPx(): Int {
     return (this * Resources.getSystem().displayMetrics.density).toInt()

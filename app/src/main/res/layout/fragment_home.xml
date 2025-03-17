@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<app.clauncher.ui.views.SwipeableFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mainLayout"
     android:layout_width="match_parent"
@@ -31,7 +31,6 @@
             style="@style/TextDefault"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-light"
             android:format12Hour="h:mm"
             android:textSize="@dimen/time_size"
             tools:text="02:34" />
@@ -75,7 +74,7 @@
         android:paddingTop="112dp"
         android:paddingBottom="48dp">
 
-        <TextView
+        <app.clauncher.ui.views.SwipeableTextView
             android:id="@+id/homeApp1"
             style="@style/TextLarge"
             android:layout_width="match_parent"
@@ -86,7 +85,7 @@
             android:visibility="gone"
             tools:visibility="visible" />
 
-        <TextView
+        <app.clauncher.ui.views.SwipeableTextView
             android:id="@+id/homeApp2"
             style="@style/TextLarge"
             android:layout_width="match_parent"
@@ -97,7 +96,7 @@
             android:visibility="gone"
             tools:visibility="visible" />
 
-        <TextView
+        <app.clauncher.ui.views.SwipeableTextView
             android:id="@+id/homeApp3"
             style="@style/TextLarge"
             android:layout_width="match_parent"
@@ -108,7 +107,7 @@
             android:visibility="gone"
             tools:visibility="visible" />
 
-        <TextView
+        <app.clauncher.ui.views.SwipeableTextView
             android:id="@+id/homeApp4"
             style="@style/TextLarge"
             android:layout_width="match_parent"
@@ -119,7 +118,7 @@
             android:visibility="gone"
             tools:visibility="visible" />
 
-        <TextView
+        <app.clauncher.ui.views.SwipeableTextView
             android:id="@+id/homeApp5"
             style="@style/TextLarge"
             android:layout_width="match_parent"
@@ -130,7 +129,7 @@
             android:visibility="gone"
             tools:visibility="visible" />
 
-        <TextView
+        <app.clauncher.ui.views.SwipeableTextView
             android:id="@+id/homeApp6"
             style="@style/TextLarge"
             android:layout_width="match_parent"
@@ -141,7 +140,7 @@
             android:visibility="gone"
             tools:visibility="visible" />
 
-        <TextView
+        <app.clauncher.ui.views.SwipeableTextView
             android:id="@+id/homeApp7"
             style="@style/TextLarge"
             android:layout_width="match_parent"
@@ -152,7 +151,7 @@
             android:visibility="gone"
             tools:visibility="visible" />
 
-        <TextView
+        <app.clauncher.ui.views.SwipeableTextView
             android:id="@+id/homeApp8"
             style="@style/TextLarge"
             android:layout_width="match_parent"
@@ -201,4 +200,4 @@
 <!--        android:hint="Type app name..."-->
 <!--        android:textSize="16sp"-->
 <!--        android:visibility="visible" />-->
-</FrameLayout>
+</app.clauncher.ui.views.SwipeableFrameLayout>

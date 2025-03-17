@@ -49,8 +49,10 @@ class MainActivity : ComponentActivity() {
         AppCompatDelegate.setDefaultNightMode(prefs.appTheme)
         super.onCreate(savedInstanceState)
 
+        navController = Navigation.findNavController(this, R.id.nav_host_fragment)
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
         
+
         if (prefs.firstOpen) {
             viewModel.firstOpen(true)
             prefs.firstOpen = false
@@ -59,6 +61,37 @@ class MainActivity : ComponentActivity() {
 
         setupOrientation()
         window.addFlags(FLAG_LAYOUT_NO_LIMITS)
+//     }
+
+//     override fun onStop() {
+//         backToHomeScreen()
+//         super.onStop()
+//     }
+
+
+//     override fun onUserLeaveHint() {
+//         // Only go home if not switching apps?
+//         if (!isChangingConfigurations) {
+//             backToHomeScreen()
+//         }
+//         super.onUserLeaveHint()
+//     }
+
+//     override fun onNewIntent(intent: Intent?) {
+//         // Check if this is an app switch intent
+//         if (intent?.action != Intent.ACTION_MAIN ||
+//             intent.hasCategory(Intent.CATEGORY_HOME)) {
+//             backToHomeScreen()
+//         }
+//         super.onNewIntent(intent)
+//     }
+
+//     override fun onConfigurationChanged(newConfig: Configuration) {
+//         super.onConfigurationChanged(newConfig)
+//         AppCompatDelegate.setDefaultNightMode(prefs.appTheme)
+//         if (prefs.plainWallpaper && AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) {
+//             setPlainWallpaper()
+//             recreate()
 
         setContent {
             CLauncherTheme {

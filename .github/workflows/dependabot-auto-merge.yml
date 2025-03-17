@@ -11,7 +11,7 @@ permissions:
 jobs:
   dependabot:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'owner/repo'
+    if: ${{ github.event.pull_request.user.login }} == 'dependabot[bot]' && ${{ github.repository }} == 'owner/repo'
     env:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
       PR_URL: ${{github.event.pull_request.html_url}}
@@ -25,7 +25,7 @@ jobs:
         id: auto-merge
         uses: dependabot/fetch-metadata@v2.2.0
         with:
-          github-token: ${{ secrets.GH_TOKEN }}
+          github-token: "${{ secrets.GH_TOKEN }}"
           
       - name: Wait 5 minutes for other checks to complete
         run: sleep 300

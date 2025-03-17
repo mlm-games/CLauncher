@@ -1,5 +1,6 @@
 package app.clauncher.ui
 
+import android.annotation.SuppressLint
 import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
@@ -13,7 +14,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
@@ -30,12 +30,9 @@ import app.clauncher.helper.appUsagePermissionGranted
 import app.clauncher.helper.getColorFromAttr
 import app.clauncher.helper.isAccessServiceEnabled
 import app.clauncher.helper.isDarkThemeOn
-import app.clauncher.helper.isClauncherDefault
 import app.clauncher.helper.openAppInfo
 import app.clauncher.helper.openUrl
-import app.clauncher.helper.rateApp
 import app.clauncher.helper.setPlainWallpaper
-import app.clauncher.helper.shareApp
 import app.clauncher.helper.showToast
 import app.clauncher.listener.DeviceAdmin
 
@@ -54,6 +51,7 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
         return binding.root
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         prefs = Prefs(requireContext())
@@ -117,7 +115,10 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
             R.id.dateTimeOn -> toggleDateTime(Constants.DateTime.ON)
             R.id.dateTimeOff -> toggleDateTime(Constants.DateTime.OFF)
             R.id.dateOnly -> toggleDateTime(Constants.DateTime.DATE_ONLY)
-            R.id.appThemeText -> binding.appThemeSelectLayout.visibility = View.VISIBLE
+            R.id.appThemeText -> {
+                binding.appThemeSelectLayout.visibility = View.VISIBLE
+                binding.themeSystem.visibility = View.VISIBLE
+            }
             R.id.themeLight -> updateTheme(AppCompatDelegate.MODE_NIGHT_NO)
             R.id.themeDark -> updateTheme(AppCompatDelegate.MODE_NIGHT_YES)
             R.id.themeSystem -> updateTheme(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
@@ -151,22 +152,6 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
             R.id.swipeDownAction -> binding.swipeDownSelectLayout.visibility = View.VISIBLE
             R.id.notifications -> updateSwipeDownAction(Constants.SwipeDownAction.NOTIFICATIONS)
             R.id.search -> updateSwipeDownAction(Constants.SwipeDownAction.SEARCH)
-
-            R.id.aboutClauncher -> {
-                prefs.aboutClicked = true
-                requireContext().openUrl(Constants.URL_ABOUT_CLAUNCHER)
-            }
-
-            R.id.share -> requireActivity().shareApp()
-            R.id.rate -> {
-                prefs.rateClicked = true
-                requireActivity().rateApp()
-            }
-
-            // R.id.twitter -> requireContext().openUrl(Constants.URL_TWITTER_TANUJ)
-            R.id.github -> requireContext().openUrl(Constants.URL_CLAUNCHER_GITHUB)
-            R.id.privacy -> requireContext().openUrl(Constants.URL_CLAUNCHER_PRIVACY)
-            // R.id.footer -> requireContext().openUrl(Constants.URL_PLAY_STORE_DEV)
         }
     }
 
@@ -178,10 +163,6 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
                 requireContext().showToast(getString(R.string.alignment_changed))
             }
 
-            R.id.appThemeText -> {
-                binding.appThemeSelectLayout.visibility = View.VISIBLE
-                binding.themeSystem.visibility = View.VISIBLE
-            }
 
             R.id.swipeLeftApp -> toggleSwipeLeft()
             R.id.swipeRightApp -> toggleSwipeRight()
@@ -192,7 +173,7 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
 
     private fun initClickListeners() {
         binding.clauncherHiddenApps.setOnClickListener(this)
-        binding.scrollLayout.setOnClickListener(this)
+        //binding.scrollLayout.setOnClickListener(this) # github->issue#31 occurs due to this, No functionality difference
         binding.appInfo.setOnClickListener(this)
         binding.setLauncher.setOnClickListener(this)
         binding.aboutClauncher.setOnClickListener(this)
@@ -232,7 +213,7 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
 //        binding.twitter.setOnClickListener(this)
 //        binding.github.setOnClickListener(this)
 //        binding.privacy.setOnClickListener(this)
-//        binding.footer.setOnClickListener(this)
+        binding.footer.setOnClickListener(this)
 
         binding.maxApps0.setOnClickListener(this)
         binding.maxApps1.setOnClickListener(this)
@@ -253,10 +234,11 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
         binding.textSize7.setOnClickListener(this)
 
         binding.alignment.setOnLongClickListener(this)
-        binding.appThemeText.setOnLongClickListener(this)
         binding.swipeLeftApp.setOnLongClickListener(this)
         binding.swipeRightApp.setOnLongClickListener(this)
         binding.toggleLock.setOnLongClickListener(this)
+
+        //binding.footer.isClickable = false github->issue#31 occurs due to scrollLayout being clickable
     }
 
     private fun initObservers() {
@@ -434,7 +416,7 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
 
     private fun setPlainWallpaper() {
         setPlainWallpaper(requireContext(), android.R.color.black)
-        if (prefs.plainWallpaper == true) {
+        if (prefs.plainWallpaper) {
             showWallpaperToasts()
         }
         //populateWallpaperText()

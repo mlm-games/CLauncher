@@ -1,12 +1,14 @@
 package app.clauncher.listener
 
 import android.content.Context
+import android.os.Build
 import android.view.GestureDetector
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
 import app.clauncher.data.Constants
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -61,6 +63,7 @@ internal open class OnSwipeTouchListener(c: Context?) : OnTouchListener {
             return super.onDoubleTap(e)
         }
 
+        @OptIn(DelicateCoroutinesApi::class)
         override fun onLongPress(e: MotionEvent) {
             longPressOn = true
             GlobalScope.launch {
