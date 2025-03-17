@@ -1,5 +1,6 @@
 package app.clauncher.ui.compose
 
+import SettingsScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.compose.NavHost
@@ -42,12 +43,12 @@ fun CLauncherNavigation(
             )
         }
 
-        composable("settings") {
-            SettingsScreen(
-                viewModel = viewModel,
-                onNavigateBack = { onScreenChange("home") }
-            )
-        }
+//        composable("settings") {
+//            SettingsScreen(
+//                viewModel = viewModel,
+//                onNavigateBack = { onScreenChange("home") }
+//            )
+//        }
     }
 }
 

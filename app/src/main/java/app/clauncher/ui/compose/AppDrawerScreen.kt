@@ -14,18 +14,30 @@ fun AppDrawerScreen(
     viewModel: MainViewModel = viewModel(),
     onAppClick: (AppModel) -> Unit
 ) {
+    var searchQuery by remember { mutableStateOf("") }
     var filteredApps by remember { mutableStateOf(emptyList<AppModel>()) }
-    
-    Column {
+
+    LaunchedEffect(viewModel.appList.value) {
+        // Initialize filtered apps with the full list when it changes
+        filteredApps = viewModel.appList.value ?: emptyList()
+    }
+
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
         AppDrawerSearch(
-            onSearch = { query ->
-                filteredApps = viewModel.appList.value?.filter { 
-                    it.appLabel.contains(query, ignoreCase = true) 
+            searchQuery = searchQuery,
+            onSearchChanged = { query ->
+                searchQuery = query
+                filteredApps = viewModel.appList.value?.filter {
+                    it.appLabel.contains(query, ignoreCase = true)
                 } ?: emptyList()
             }
         )
-        
-        LazyColumn {
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
+        ) {
             items(filteredApps) { app ->
                 AppItem(
                     app = app,

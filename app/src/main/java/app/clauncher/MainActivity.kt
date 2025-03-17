@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
         AppCompatDelegate.setDefaultNightMode(prefs.appTheme)
         super.onCreate(savedInstanceState)
 
-        navController = Navigation.findNavController(this, R.id.nav_host_fragment)
+//        navController = Navigation.findNavController(this, R.id.nav_host_fragment)
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
         
 
