@@ -1,6 +1,8 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    //alias(libs.plugins.compose.compiler) apply false
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.0" // this version matches your Kotlin version
 }
 
 android {
@@ -74,8 +76,14 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
+        compose true
     }
-    
+
+    composeCompiler {
+        reportsDestination = layout.buildDirectory.dir("compose_compiler")
+        stabilityConfigurationFile = rootProject.layout.projectDirectory.file("stability_config.conf")
+    }
+
     namespace 'app.clauncher'
 
     aaptOptions {
@@ -112,6 +120,23 @@ dependencies {
 
     //Material dependency
     implementation libs.material
+    implementation libs.material3.android
+
+    def compose_version = "1.5.4"
+    def compose_compiler_version = "1.5.4"
+
+    // Compose dependencies
+    implementation "androidx.compose.ui:ui:$compose_version"
+    implementation "androidx.compose.material3:material3:1.1.2"
+    implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
+    implementation "androidx.compose.runtime:runtime:$compose_version"
+    implementation "androidx.activity:activity-compose:1.8.2"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0"
+    implementation "androidx.navigation:navigation-compose:2.7.6"
+
+    // Testing
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
+    debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
 }
 
 tasks.register('verifyReleaseApk') {
