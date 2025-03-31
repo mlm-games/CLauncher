@@ -1,13 +1,15 @@
 package app.clauncher.ui.compose
 
-import SettingsScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import app.clauncher.MainViewModel
-import app.clauncher.data.Constants
+import app.clauncher.ui.compose.screens.AppDrawerScreen
+//import app.clauncher.ui.compose.screens.HiddenAppsScreen
+import app.clauncher.ui.compose.screens.HomeScreen
+import app.clauncher.ui.compose.screens.SettingsScreen
 
 @Composable
 fun CLauncherNavigation(
@@ -37,23 +39,25 @@ fun CLauncherNavigation(
             AppDrawerScreen(
                 viewModel = viewModel,
                 onAppClick = { app ->
-                    viewModel.selectedApp(app, Constants.FLAG_LAUNCH_APP)
+//TODO                    viewModel.selectedApp(app, app.clauncher.data.Constants.FLAG_LAUNCH_APP)
                     onScreenChange("home")
                 }
             )
         }
 
-//        composable("settings") {
-//            SettingsScreen(
+        composable("settings") {
+            SettingsScreen(
+                viewModel = viewModel,
+                onNavigateBack = { onScreenChange("home") }
+            )
+        }
+
+        // Add the screen later
+//        composable("hiddenApps") {
+//            HiddenAppsScreen(
 //                viewModel = viewModel,
-//                onNavigateBack = { onScreenChange("home") }
+//                onNavigateBack = { onScreenChange("settings") }
 //            )
 //        }
     }
-}
-
-
-@Composable
-fun HomeScreen(viewModel: MainViewModel, onOpenAppDrawer: () -> Unit, onOpenSettings: () -> Unit) {
-    TODO("Not yet implemented")
 }

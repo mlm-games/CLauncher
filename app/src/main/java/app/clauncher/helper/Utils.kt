@@ -18,7 +18,6 @@ import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Point
 import android.net.Uri
-import android.os.Build
 import android.os.UserHandle
 import android.os.UserManager
 import android.provider.AlarmClock
@@ -41,15 +40,10 @@ import app.clauncher.data.Constants
 import app.clauncher.data.Prefs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.text.Collator
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.Scanner
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -330,7 +324,7 @@ fun getBackupWallpaper(wallType: String): String {
     else Constants.URL_DEFAULT_DARK_WALLPAPER
 }
 
-fun openSearch(context: Context) {
+fun openSearch(context: Context, trim: String) {
     val intent = Intent(Intent.ACTION_WEB_SEARCH)
     intent.putExtra(SearchManager.QUERY, "")
     context.startActivity(intent)

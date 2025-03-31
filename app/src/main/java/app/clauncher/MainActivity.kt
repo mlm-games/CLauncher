@@ -11,15 +11,12 @@ import android.os.Bundle
 import android.provider.Settings
 import android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import app.clauncher.data.Constants
 import app.clauncher.data.Prefs
@@ -49,9 +46,7 @@ class MainActivity : ComponentActivity() {
         AppCompatDelegate.setDefaultNightMode(prefs.appTheme)
         super.onCreate(savedInstanceState)
 
-//        navController = Navigation.findNavController(this, R.id.nav_host_fragment)
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
-        
 
         if (prefs.firstOpen) {
             viewModel.firstOpen(true)
@@ -61,59 +56,10 @@ class MainActivity : ComponentActivity() {
 
         setupOrientation()
         window.addFlags(FLAG_LAYOUT_NO_LIMITS)
-//     }
-
-//     override fun onStop() {
-//         backToHomeScreen()
-//         super.onStop()
-//     }
-
-
-//     override fun onUserLeaveHint() {
-//         // Only go home if not switching apps?
-//         if (!isChangingConfigurations) {
-//             backToHomeScreen()
-//         }
-//         super.onUserLeaveHint()
-//     }
-
-//     override fun onNewIntent(intent: Intent?) {
-//         // Check if this is an app switch intent
-//         if (intent?.action != Intent.ACTION_MAIN ||
-//             intent.hasCategory(Intent.CATEGORY_HOME)) {
-//             backToHomeScreen()
-//         }
-//         super.onNewIntent(intent)
-//     }
-
-//     override fun onConfigurationChanged(newConfig: Configuration) {
-//         super.onConfigurationChanged(newConfig)
-//         AppCompatDelegate.setDefaultNightMode(prefs.appTheme)
-//         if (prefs.plainWallpaper && AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) {
-//             setPlainWallpaper()
-//             recreate()
 
         setContent {
             CLauncherTheme {
                 var currentScreen by remember { mutableStateOf("home") }
-                
-                // Handle system back press
-                BackHandler(enabled = currentScreen != "home") {
-                    currentScreen = "home"
-                }
-
-                // Observe ViewModel events
-                DisposableEffect(viewModel) {
-                    val launcherResetObserver = Observer<Boolean> { resetFailed ->
-                        openLauncherChooser(resetFailed)
-                    }
-                    
-                    viewModel.launcherResetFailed.observe(this@MainActivity, launcherResetObserver)
-                    
-                    onDispose {
-                        viewModel.launcherResetFailed.removeObserver(launcherResetObserver)
-                    }
-                }
 
                 // Main navigation
                 CLauncherNavigation(
@@ -136,6 +82,10 @@ class MainActivity : ComponentActivity() {
                 resetLauncherViaFakeActivity()
             else
                 showLauncherSelector(Constants.REQUEST_CODE_LAUNCHER_SELECTOR)
+        }
+
+        viewModel.launcherResetFailed.observe(this) { resetFailed ->
+            openLauncherChooser(resetFailed)
         }
     }
 

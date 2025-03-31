@@ -3,6 +3,7 @@ package app.clauncher.ui.theme
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -29,11 +30,16 @@ fun CLauncherTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = typography,
         content = content
     )
 }
 
-fun MaterialTheme(colorScheme: ColorScheme, typography: Typography, content: @Composable () -> Unit) {
-    TODO("Not yet implemented")
+@Composable
+fun MaterialTheme(colorScheme: ColorScheme, typography: androidx.compose.material3.Typography, content: @Composable () -> Unit) {
+    androidx.compose.material3.MaterialTheme(
+        colorScheme = colorScheme,
+        typography = typography,
+        content = content
+    )
 }

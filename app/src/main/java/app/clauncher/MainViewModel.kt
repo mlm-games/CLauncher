@@ -56,6 +56,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _viewState.postValue(ViewState.Error(exception.message ?: "An error occurred"))
     }
 
+    data class PwaApp(
+        val name: String,
+        val url: String,
+        val manifestUrl: String?
+    )
+
+    val pwaApps = mutableListOf<PwaApp>()
+
+//    fun addPwaApp(url: String) {
+//        viewModelScope.launch {
+//            // Fetch manifest and add to PWA list
+//            val manifestUrl = fetchWebManifest(url)
+//            val pwa = PwaApp(
+//                name = url.host ?: "PWA App",
+//                url = url,
+//                manifestUrl = manifestUrl
+//            )
+//            pwaApps.add(pwa)
+//            refreshHome(true)
+//        }
+//    }
+
     fun selectedApp(appModel: AppModel, flag: Int) {
         when (flag) {
             Constants.FLAG_LAUNCH_APP -> {
