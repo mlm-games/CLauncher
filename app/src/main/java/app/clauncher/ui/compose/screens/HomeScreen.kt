@@ -1,6 +1,7 @@
 package app.clauncher.ui.compose.screens
 
 import android.view.Gravity
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
@@ -20,6 +21,7 @@ import app.clauncher.helper.openDialerApp
 import app.clauncher.helper.openSearch
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.abs
 
 @Composable
 fun HomeScreen(
@@ -106,7 +108,7 @@ fun HomeScreen(
                                 .pointerInput(Unit) {
                                     detectTapGestures(
                                         onTap = { TODO("viewModel.openClockApp(context)") },
-                                        onLongPress = { /* Select clock app */ }
+                                        onLongPress = { /* TODO Select clock app */ }
                                     )
                                 }
                         )
@@ -139,44 +141,30 @@ fun HomeScreen(
             )
         }
 
-        //TODO Swipe gesture handlers
-//        GestureHandler(
-//            onSwipeUp = onOpenAppDrawer,
-//            onSwipeDown = {
-//                when (prefs.swipeDownAction) {
-//                    Constants.SwipeDownAction.SEARCH -> openSearch(context)
-//                    else -> expandNotificationDrawer(context)
-//                }
-//            },
-//            onSwipeLeft = {
-//                if (prefs.swipeLeftEnabled) {
-//                    if (prefs.appPackageSwipeLeft.isNotEmpty()) {
-//                        viewModel.launchApp(
-//                            prefs.appNameSwipeLeft,
-//                            prefs.appPackageSwipeLeft,
-//                            prefs.appActivityClassNameSwipeLeft,
-//                            prefs.appUserSwipeLeft
-//                        )
-//                    } else {
-//                        openCameraApp(context)
-//                    }
-//                }
-//            },
-//            onSwipeRight = {
-//                if (prefs.swipeRightEnabled) {
-//                    if (prefs.appPackageSwipeRight.isNotEmpty()) {
-//                        viewModel.launchApp(
-//                            prefs.appNameSwipeRight,
-//                            prefs.appPackageSwipeRight,
-//                            prefs.appActivityClassNameRight,
-//                            prefs.appUserSwipeRight
-//                        )
-//                    } else {
-//                        openDialerApp(context)
-//                    }
-//                }
-//            }
-//        )
+        @Composable
+        fun GestureHandler(
+            onSwipeUp: () -> Unit,
+            onSwipeDown: () -> Unit,
+            onSwipeLeft: () -> Unit,
+            onSwipeRight: () -> Unit
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        detectDragGestures { change, dragAmount ->
+                            change.consume()
+                            val (x, y) = dragAmount
+                            when {
+                                abs(x) > abs(y) && x > 0 -> onSwipeRight()  // Swipe right
+                                abs(x) > abs(y) && x < 0 -> onSwipeLeft()   // Swipe left
+                                abs(y) > abs(x) && y > 0 -> onSwipeDown()   // Swipe down
+                                abs(y) > abs(x) && y < 0 -> onSwipeUp()     // Swipe up
+                            }
+                        }
+                    }
+            )
+        }
     }
 }
 

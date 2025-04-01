@@ -61,7 +61,6 @@ class MainActivity : ComponentActivity() {
             CLauncherTheme {
                 var currentScreen by remember { mutableStateOf("home") }
 
-                // Main navigation
                 CLauncherNavigation(
                     viewModel = viewModel,
                     currentScreen = currentScreen,
@@ -73,7 +72,7 @@ class MainActivity : ComponentActivity() {
         }
 
         initObservers()
-        viewModel.getAppList()
+        viewModel.loadApps()
     }
 
     private fun initObservers() {

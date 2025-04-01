@@ -19,6 +19,8 @@ import app.clauncher.helper.getAppsList
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
@@ -34,8 +36,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val refreshHome = MutableLiveData<Boolean>()
     val toggleDateTime = MutableLiveData<Unit>()
     val updateSwipeApps = MutableLiveData<Any>()
-    val appList = MutableLiveData<List<AppModel>?>()
-    val hiddenApps = MutableLiveData<List<AppModel>?>()
     val launcherResetFailed = MutableLiveData<Boolean>()
     val homeAppAlignment = MutableLiveData<Int>()
     val screenTimeValue = MutableLiveData<String>()
@@ -43,6 +43,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val showDialog = SingleLiveEvent<String>()
     val checkForMessages = SingleLiveEvent<Unit?>()
     val resetLauncherLiveData = SingleLiveEvent<Unit?>()
+
+    private val _appList = MutableStateFlow<List<AppModel>>(emptyList())
+    val appList: StateFlow<List<AppModel>> = _appList
+
+    private val _hiddenApps = MutableStateFlow<List<AppModel>>(emptyList())
+    val hiddenApps: StateFlow<List<AppModel>> = _hiddenApps
+
+
 
     // View state management?
     sealed class ViewState {
@@ -198,6 +206,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         updateSwipeApps.postValue(Unit)
     }
 
+
     fun launchApp(appModel: AppModel) {
         viewModelScope.launch(coroutineExceptionHandler) {
             try {
@@ -211,17 +220,41 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun getAppList(includeHiddenApps: Boolean = false) {
+
+    fun loadApps() {
         viewModelScope.launch {
-            appList.value = getAppsList(appContext, prefs, includeRegularApps = true, includeHiddenApps)
+            // Load all apps from the package manager
+            val apps = getAppsList(appContext, prefs, includeRegularApps = true, includeHiddenApps = false)
+
+            // Filter out hidden apps
+            val prefs = Prefs(appContext)
+            val hiddenAppSet = prefs.hiddenApps
+
+            val visibleApps = apps.filter { app ->
+                val appKey = "${app.appPackage}/${app.user}"
+                !hiddenAppSet.contains(appKey)
+            }
+
+            _appList.value = visibleApps
         }
     }
 
     fun getHiddenApps() {
         viewModelScope.launch {
-            hiddenApps.value = getAppsList(appContext, prefs, includeRegularApps = false, includeHiddenApps = true)
+            val allApps = getAppsList(appContext, prefs, includeRegularApps = false, includeHiddenApps = true)
+            val prefs = Prefs(appContext)
+            val hiddenAppSet = prefs.hiddenApps
+
+            val hiddenAppsList = allApps.filter { app ->
+                val appKey = "${app.appPackage}/${app.user}"
+                hiddenAppSet.contains(appKey)
+            }
+
+            _hiddenApps.value = hiddenAppsList
         }
     }
+
+
 
 //    fun isCLauncherDefault() {
 //        isCLauncherDefault.value = isCLauncherDefault(appContext)
@@ -293,6 +326,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.cancel()
     }
 
+    fun toggleAppHidden(app: AppModel) {
+        // Toggle app visibility in hidden apps list
+        val prefs = Prefs(appContext)
+        val hiddenApps = prefs.hiddenApps
+        val appKey = "${app.appPackage}/${app.user}"
+
+        if (hiddenApps.contains(appKey)) {
+            hiddenApps.remove(appKey)
+        } else {
+            hiddenApps.add(appKey)
+        }
+
+        prefs.hiddenApps = hiddenApps
+        prefs.hiddenAppsUpdated = true
+
+        // Refresh app lists
+    }
 }
 
 //object LauncherUtils {

@@ -32,15 +32,15 @@ fun AppItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         // I think this is not needed rn
-//        app.appIcon?.let { icon ->
-//            Image(
-//                bitmap = icon.asImageBitmap(),
-//                contentDescription = null,
-//                modifier = Modifier
-//                    .size(40.dp)
-//                    .padding(end = 16.dp)
-//            )
-//        }
+        app.appIcon?.let { icon ->
+            Image(
+                bitmap = icon.asImageBitmap(),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(40.dp)
+                    .padding(end = 16.dp)
+            )
+        }
 
         Text(
             text = app.appLabel,

@@ -46,6 +46,8 @@ import java.net.URL
 import java.text.Collator
 import kotlin.math.pow
 import kotlin.math.sqrt
+import androidx.core.net.toUri
+import androidx.core.graphics.createBitmap
 
 fun Context.showToast(message: String?, duration: Int = Toast.LENGTH_SHORT) {
     if (message.isNullOrBlank()) return
@@ -172,7 +174,7 @@ fun setPlainWallpaperByTheme(context: Context, appTheme: Int) {
 
 fun setPlainWallpaper(context: Context, color: Int) {
     try {
-        val bitmap = Bitmap.createBitmap(1000, 2000, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(1000, 2000)
         bitmap.eraseColor(context.getColor(color))
         val manager = WallpaperManager.getInstance(context)
         manager.setBitmap(bitmap, null, false, WallpaperManager.FLAG_SYSTEM)
@@ -224,7 +226,7 @@ suspend fun getBitmapFromURL(src: String?): Bitmap? {
 suspend fun getWallpaperBitmap(originalImage: Bitmap, width: Int, height: Int): Bitmap {
     return withContext(Dispatchers.IO) {
 
-        val background = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val background = createBitmap(width, height)
 
         val originalWidth: Float = originalImage.width.toFloat()
         val originalHeight: Float = originalImage.height.toFloat()
@@ -285,46 +287,7 @@ fun getScreenDimensions(context: Context): Pair<Int, Int> {
     return Pair(point.x, point.y)
 }
 
-//suspend fun getTodaysWallpaper(wallType: String): String {
-//    return withContext(Dispatchers.IO) {
-//        var wallpaperUrl: String
-//        try {
-//            val month = SimpleDateFormat("M", Locale.ENGLISH).format(Date()) ?: ""
-//            val day = SimpleDateFormat("d", Locale.ENGLISH).format(Date()) ?: ""
-//            val key = String.format("%s_%s", month, day)
-//
-//            val url = URL(Constants.URL_WALLPAPERS)
-//            val connection: HttpURLConnection = url.openConnection() as HttpURLConnection
-//            connection.doInput = true
-//            connection.connect()
-//
-//            val inputStream = connection.inputStream
-//            val scanner = Scanner(inputStream)
-//            val stringBuffer = StringBuffer()
-//            while (scanner.hasNext()) {
-//                stringBuffer.append(scanner.nextLine())
-//            }
-//
-//            val json = JSONObject(stringBuffer.toString())
-//            val wallpapers = json.getString(key)
-//            val wallpapersJson = JSONObject(wallpapers)
-//            wallpaperUrl = wallpapersJson.getString(wallType)
-//            wallpaperUrl
-//
-//        } catch (e: Exception) {
-//            wallpaperUrl = getBackupWallpaper(wallType)
-//            wallpaperUrl
-//        }
-//    }
-//}
-
-fun getBackupWallpaper(wallType: String): String {
-    return if (wallType == Constants.WALL_TYPE_LIGHT)
-        Constants.URL_DEFAULT_LIGHT_WALLPAPER
-    else Constants.URL_DEFAULT_DARK_WALLPAPER
-}
-
-fun openSearch(context: Context, trim: String) {
+fun openSearch(context: Context) {
     val intent = Intent(Intent.ACTION_WEB_SEARCH)
     intent.putExtra(SearchManager.QUERY, "")
     context.startActivity(intent)
@@ -379,7 +342,10 @@ fun openCalendar(context: Context) {
         context.startActivity(Intent(Intent.ACTION_VIEW, calendarUri))
     } catch (e: Exception) {
         try {
-            val intent = Intent(Intent.ACTION_MAIN)
+            val intent = Intent(Intent.ACTION_MAIN).setClassName(
+                context,
+                "app.clauncher.helper.FakeHomeActivity"
+            )
             intent.addCategory(Intent.CATEGORY_APP_CALENDAR)
             context.startActivity(intent)
         } catch (e: Exception) {
@@ -427,7 +393,7 @@ fun Context.copyToClipboard(text: String) {
 fun Context.openUrl(url: String) {
     if (url.isEmpty()) return
     val intent = Intent(Intent.ACTION_VIEW)
-    intent.data = Uri.parse(url)
+    intent.data = url.toUri()
     startActivity(intent)
 }
 
@@ -445,7 +411,7 @@ fun Context.isSystemApp(packageName: String): Boolean {
 
 fun Context.uninstall(packageName: String) {
     val intent = Intent(Intent.ACTION_DELETE)
-    intent.data = Uri.parse("package:$packageName")
+    intent.data = "package:$packageName".toUri()
     startActivity(intent)
 }
 
@@ -470,7 +436,7 @@ fun View.animateAlpha(alpha: Float = 1.0f) {
 
 fun Context.shareApp() {
     val message = getString(R.string.are_you_using_your_phone_or_is_your_phone_using_you) +
-            "\n" + Constants.URL_CLAUNCHER_PLAY_STORE
+            "\n" + Constants.URL_CLAUNCHER_GITHUB
     val sendIntent: Intent = Intent().apply {
         action = Intent.ACTION_SEND
         putExtra(Intent.EXTRA_TEXT, message)
@@ -481,10 +447,10 @@ fun Context.shareApp() {
     startActivity(shareIntent)
 }
 
-fun Context.rateApp() {
+fun Context.starApp() {
     val intent = Intent(
         Intent.ACTION_VIEW,
-        Uri.parse(Constants.URL_CLAUNCHER_PLAY_STORE)
+        Constants.URL_CLAUNCHER_GITHUB.toUri()
     )
     var flags = Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_MULTIPLE_TASK
     flags = flags or Intent.FLAG_ACTIVITY_NEW_DOCUMENT

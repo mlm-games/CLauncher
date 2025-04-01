@@ -1,5 +1,6 @@
 package app.clauncher.data
 
+import android.graphics.Bitmap
 import android.os.UserHandle
 import java.text.CollationKey
 
@@ -10,6 +11,7 @@ data class AppModel(
     val activityClassName: String?,
     val isNew: Boolean? = false,
     val user: UserHandle,
+    val appIcon: Bitmap? = null
 ) : Comparable<AppModel> {
     override fun compareTo(other: AppModel): Int = when {
         key != null && other.key != null -> key.compareTo(other.key)

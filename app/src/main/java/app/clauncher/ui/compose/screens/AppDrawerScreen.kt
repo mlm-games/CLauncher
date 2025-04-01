@@ -24,7 +24,7 @@ fun AppDrawerScreen(
     onAppClick: (AppModel) -> Unit
 ) {
     val context = LocalContext.current
-    val appList by remember { mutableStateOf(emptyList<AppModel>()) }//TODO: by viewModel.appList.collectAsState()
+    val appList by viewModel.appList.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     var filteredApps by remember { mutableStateOf(emptyList<AppModel>()) }
 
@@ -50,11 +50,11 @@ fun AppDrawerScreen(
             },
             onSearchSubmitted = { query ->
                 if (query.startsWith("!")) {
-                    // Open DuckDuckGo search
+                    // DuckDuckGo search
                     context.openUrl(Constants.URL_DUCK_SEARCH + query.replace(" ", "%20"))
                 } else if (filteredApps.isEmpty()) {
-                    // Open web search
-                    openSearch(context, query.trim())
+                    // web search
+                    openSearch(context)
                 } else {
                     // Launch first app in filtered list
                     filteredApps.firstOrNull()?.let { onAppClick(it) }
@@ -71,7 +71,7 @@ fun AppDrawerScreen(
                     app = app,
                     onClick = { onAppClick(app) },
                     onLongClick = {
-                        // Show app options (info, hide, uninstall)
+                        viewModel.toggleAppHidden(app)
                     }
                 )
             }

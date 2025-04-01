@@ -6,8 +6,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import app.clauncher.MainViewModel
+import app.clauncher.data.Constants
 import app.clauncher.ui.compose.screens.AppDrawerScreen
-//import app.clauncher.ui.compose.screens.HiddenAppsScreen
+import app.clauncher.ui.compose.screens.HiddenAppsScreen
 import app.clauncher.ui.compose.screens.HomeScreen
 import app.clauncher.ui.compose.screens.SettingsScreen
 
@@ -39,11 +40,12 @@ fun CLauncherNavigation(
             AppDrawerScreen(
                 viewModel = viewModel,
                 onAppClick = { app ->
-//TODO                    viewModel.selectedApp(app, app.clauncher.data.Constants.FLAG_LAUNCH_APP)
+                    viewModel.selectedApp(app, Constants.FLAG_LAUNCH_APP)  // Fixed: Implement app launch
                     onScreenChange("home")
                 }
             )
         }
+
 
         composable("settings") {
             SettingsScreen(
