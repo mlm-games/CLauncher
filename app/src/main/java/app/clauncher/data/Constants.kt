@@ -1,5 +1,7 @@
 package app.clauncher.data
 
+import androidx.appcompat.app.AppCompatDelegate
+
 object Constants {
 
     object Key {
@@ -61,10 +63,6 @@ object Constants {
     const val WALL_TYPE_LIGHT = "light"
     const val WALL_TYPE_DARK = "dark"
 
-//    const val THEME_MODE_DARK = 0
-//    const val THEME_MODE_LIGHT = 1
-//    const val THEME_MODE_SYSTEM = 2
-
     const val FLAG_LAUNCH_APP = 100
     const val FLAG_HIDDEN_APPS = 101
 
@@ -100,4 +98,17 @@ object Constants {
     const val URL_CLAUNCHER_GITHUB = "https://github.com/mlm-games/CLauncher"
     const val URL_DUCK_SEARCH = ""
     const val WALLPAPER_WORKER_NAME = "WALLPAPER_WORKER_NAME"
+}
+
+object Navigation {
+    const val HOME = "home"
+    const val APP_DRAWER = "appDrawer"
+    const val SETTINGS = "settings"
+    const val HIDDEN_APPS = "hiddenApps"
+}
+
+object Settings {
+    const val THEME_LIGHT = AppCompatDelegate.MODE_NIGHT_NO
+    const val THEME_DARK = AppCompatDelegate.MODE_NIGHT_YES
+    const val THEME_SYSTEM = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
 }

@@ -16,6 +16,7 @@ import app.clauncher.data.Constants
 import app.clauncher.data.Prefs
 import app.clauncher.helper.SingleLiveEvent
 import app.clauncher.helper.getAppsList
+import app.clauncher.helper.getUserHandleFromString
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -220,37 +221,50 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun updateShowApps(show: Boolean) {
+        prefs.toggleAppVisibility = show
+        _appList.value = _appList.value.map { it.copy(isHidden = !show) }
+    }
+
+    fun launchSwipeLeftApp() {
+        if (prefs.appPackageSwipeLeft?.isNotEmpty() == true) {
+            val app = prefs.appNameSwipeLeft?.let {
+                prefs.appPackageSwipeLeft?.let { it1 ->
+                    prefs.appUserSwipeLeft?.let { it2 ->
+                        getUserHandleFromString(appContext,
+                            it2
+                        )
+                    }?.let { it3 ->
+                        AppModel(
+                            appLabel = it,
+                            key = null,
+                            appPackage = it1,
+                            activityClassName = prefs.appActivityClassNameSwipeLeft,
+                            user = it3
+                        )
+                    }
+                }
+            }
+            if (app != null) {
+                launchApp(app)
+            }
+        }
+    }
+
 
     fun loadApps() {
         viewModelScope.launch {
             // Load all apps from the package manager
             val apps = getAppsList(appContext, prefs, includeRegularApps = true, includeHiddenApps = false)
 
-            // Filter out hidden apps
-            val prefs = Prefs(appContext)
-            val hiddenAppSet = prefs.hiddenApps
-
-            val visibleApps = apps.filter { app ->
-                val appKey = "${app.appPackage}/${app.user}"
-                !hiddenAppSet.contains(appKey)
-            }
-
-            _appList.value = visibleApps
+            _appList.value = apps
         }
     }
 
     fun getHiddenApps() {
         viewModelScope.launch {
-            val allApps = getAppsList(appContext, prefs, includeRegularApps = false, includeHiddenApps = true)
-            val prefs = Prefs(appContext)
-            val hiddenAppSet = prefs.hiddenApps
-
-            val hiddenAppsList = allApps.filter { app ->
-                val appKey = "${app.appPackage}/${app.user}"
-                hiddenAppSet.contains(appKey)
-            }
-
-            _hiddenApps.value = hiddenAppsList
+            val apps = getAppsList(appContext, prefs, includeRegularApps = false, includeHiddenApps = true)
+            _hiddenApps.value = apps
         }
     }
 

@@ -51,6 +51,23 @@ fun HomeScreen(
         }
     }
 
+//    LaunchedEffect(swipeState.currentValue) {
+//        when (swipeState.currentValue) {
+//            1 -> { // Swipe left
+//                if (prefs.swipeLeftEnabled) {
+//                    viewModel.launchSwipeLeftApp()
+//                }
+//            }
+//            2 -> { // Swipe right
+//                if (prefs.swipeRightEnabled) {
+//                    viewModel.launchSwipeRightApp()
+//                }
+//            }
+//        }
+//        swipeState.animateTo(0)
+//    }
+
+
     // Main layout
     Box(
         modifier = Modifier
@@ -182,20 +199,25 @@ private fun HomeApps(
             else -> Alignment.CenterHorizontally
         }
     ) {
-        // Display home apps based on homeAppsNum
         if (homeAppsNum >= 1) {
-            HomeAppItem(
-                appName = prefs.appName1,
-                appPackage = prefs.appPackage1,
-                appUser = prefs.appUser1,
-                onClick = { TODO("viewModel.launchHomeApp(1)") },
-                onLongClick = { /* Show app selection */ },
-                textAlign = when (alignment) {
-                    Gravity.START -> TextAlign.Start
-                    Gravity.END -> TextAlign.End
-                    else -> TextAlign.Center
+            prefs.appName1?.let {
+                prefs.appPackage1?.let { it1 ->
+                    prefs.appUser1?.let { it2 ->
+                        HomeAppItem(
+                            appName = it,
+                            appPackage = it1,
+                            appUser = it2,
+                            onClick = { TODO("viewModel.launchHomeApp(1)") },
+                            onLongClick = { /* Show app selection */ },
+                            textAlign = when (alignment) {
+                                Gravity.START -> TextAlign.Start
+                                Gravity.END -> TextAlign.End
+                                else -> TextAlign.Center
+                            }
+                        )
+                    }
                 }
-            )
+            }
         }
 
         // Add similar blocks for apps 2-8, checking homeAppsNum

@@ -14,6 +14,8 @@ import androidx.compose.ui.unit.dp
 import app.clauncher.MainViewModel
 import app.clauncher.data.Constants
 import app.clauncher.data.Prefs
+import app.clauncher.ui.compose.dialogs.NumberPickerDialog
+import app.clauncher.ui.compose.dialogs.ThemePickerDialog
 
 @Composable
 fun SettingsScreen(
@@ -22,6 +24,36 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     val prefs = remember { Prefs(context) }
+
+    var showNumberPicker by remember { mutableStateOf(false) }
+    var showThemePicker by remember { mutableStateOf(false) }
+    var showAlignmentPicker by remember { mutableStateOf(false) }
+    var showDateTimePicker by remember { mutableStateOf(false) }
+    var showTextSizePicker by remember { mutableStateOf(false) }
+    var showSwipeDownPicker by remember { mutableStateOf(false) }
+
+    NumberPickerDialog(
+        show = showNumberPicker,
+        currentValue = prefs.homeAppsNum,
+        range = 0..8,
+        onDismiss = { showNumberPicker = false },
+        onValueSelected = { newValue ->
+            prefs.homeAppsNum = newValue
+            viewModel.refreshHome(true)
+        }
+    )
+
+    ThemePickerDialog(
+        show = showThemePicker,
+        currentTheme = prefs.appTheme,
+        onDismiss = { showThemePicker = false },
+        onThemeSelected = { newTheme ->
+            prefs.appTheme = newTheme
+            AppCompatDelegate.setDefaultNightMode(newTheme)
+        }
+    )
+
+ //   TODO("Other dialogs")
 
     LazyColumn(
         modifier = Modifier.fillMaxSize()
@@ -44,7 +76,7 @@ fun SettingsScreen(
                     isChecked = prefs.toggleAppVisibility,
                     onCheckedChange = {
                         prefs.toggleAppVisibility = it
-//TODO                        viewModel.updateShowApps(it)
+                        viewModel.updateShowApps(it)
                     }
                 )
 
