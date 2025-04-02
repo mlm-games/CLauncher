@@ -45,24 +45,24 @@ fun Activity.showLauncherSelector(requestCode: Int) {
 }
 
 fun Context.resetDefaultLauncher() {
-    try {
-        val componentName = ComponentName(this, FakeHomeActivity::class.java)
-        packageManager.setComponentEnabledSetting(
-            componentName,
-            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-            PackageManager.DONT_KILL_APP
-        )
-        val selector = Intent(Intent.ACTION_MAIN)
-        selector.addCategory(Intent.CATEGORY_HOME)
-        startActivity(selector)
-        packageManager.setComponentEnabledSetting(
-            componentName,
-            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-            PackageManager.DONT_KILL_APP
-        )
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
+//    try {
+//        val componentName = ComponentName(this, FakeHomeActivity::class.java)
+//        packageManager.setComponentEnabledSetting(
+//            componentName,
+//            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+//            PackageManager.DONT_KILL_APP
+//        )
+//        val selector = Intent(Intent.ACTION_MAIN)
+//        selector.addCategory(Intent.CATEGORY_HOME)
+//        startActivity(selector)
+//        packageManager.setComponentEnabledSetting(
+//            componentName,
+//            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+//            PackageManager.DONT_KILL_APP
+//        )
+//    } catch (e: Exception) {
+//        e.printStackTrace()
+//    }
 }
 
 fun Context.resetLauncherViaFakeActivity() {
