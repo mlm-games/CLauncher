@@ -17,7 +17,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import app.clauncher.data.Constants
 import app.clauncher.data.Prefs
 import app.clauncher.helper.isDarkThemeOn
@@ -28,6 +31,7 @@ import app.clauncher.helper.setPlainWallpaper
 import app.clauncher.helper.showLauncherSelector
 import app.clauncher.ui.compose.CLauncherNavigation
 import app.clauncher.ui.theme.CLauncherTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private lateinit var prefs: Prefs
@@ -83,8 +87,13 @@ class MainActivity : ComponentActivity() {
                 showLauncherSelector(Constants.REQUEST_CODE_LAUNCHER_SELECTOR)
         }
 
-        viewModel.launcherResetFailed.observe(this) { resetFailed ->
-            openLauncherChooser(resetFailed)
+        lifecycleScope.launch {
+            // Only collect when the lifecycle is at least STARTED
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.launcherResetFailed.collect { resetFailed ->
+                    openLauncherChooser(resetFailed)
+                }
+            }
         }
     }
 
