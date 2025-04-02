@@ -22,7 +22,7 @@ fun NumberPickerDialog(
     onValueSelected: (Int) -> Unit
 ) {
     if (show) {
-        var selectedValue by remember { mutableStateOf(currentValue) }
+        var selectedValue by remember { mutableIntStateOf(currentValue) }
 
         AlertDialog(
             onDismissRequest = onDismiss,
@@ -85,7 +85,7 @@ fun ThemePickerDialog(
     onThemeSelected: (Int) -> Unit
 ) {
     if (show) {
-        var selectedTheme by remember { mutableStateOf(currentTheme) }
+        var selectedTheme by remember { mutableIntStateOf(currentTheme) }
 
         AlertDialog(
             onDismissRequest = onDismiss,
@@ -193,7 +193,7 @@ fun AlignmentPickerDialog(
     onAlignmentSelected: (Int) -> Unit
 ) {
     if (show) {
-        var selectedAlignment by remember { mutableStateOf(currentAlignment) }
+        var selectedAlignment by remember { mutableIntStateOf(currentAlignment) }
 
         AlertDialog(
             onDismissRequest = onDismiss,
@@ -301,7 +301,7 @@ fun DateTimeVisibilityDialog(
     onVisibilitySelected: (Int) -> Unit
 ) {
     if (show) {
-        var selectedVisibility by remember { mutableStateOf(currentVisibility) }
+        var selectedVisibility by remember { mutableIntStateOf(currentVisibility) }
 
         AlertDialog(
             onDismissRequest = onDismiss,
@@ -409,7 +409,7 @@ fun SwipeDownActionDialog(
     onActionSelected: (Int) -> Unit
 ) {
     if (show) {
-        var selectedAction by remember { mutableStateOf(currentAction) }
+        var selectedAction by remember { mutableIntStateOf(currentAction) }
 
         AlertDialog(
             onDismissRequest = onDismiss,
@@ -494,7 +494,7 @@ fun TextSizeDialog(
     onSizeSelected: (Float) -> Unit
 ) {
     if (show) {
-        var selectedSize by remember { mutableStateOf(currentSize) }
+        var selectedSize by remember { mutableFloatStateOf(currentSize) }
 
         AlertDialog(
             onDismissRequest = onDismiss,

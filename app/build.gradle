@@ -130,6 +130,7 @@ dependencies {
     implementation libs.activity.compose
     implementation libs.lifecycle.viewmodel.compose
     implementation libs.navigation.compose
+    implementation libs.constraintlayout.compose.android
 
     // Testing
     androidTestImplementation libs.ui.test.junit4

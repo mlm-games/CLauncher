@@ -2,6 +2,7 @@ package app.clauncher.ui.compose
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.constraintlayout.compose.SwipeDirection
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -25,6 +26,9 @@ fun CLauncherNavigation(
             popUpTo(navController.graph.startDestinationId)
             launchSingleTop = true
         }
+
+
+
     }
 
     NavHost(navController = navController, startDestination = "home") {
@@ -40,11 +44,13 @@ fun CLauncherNavigation(
             AppDrawerScreen(
                 viewModel = viewModel,
                 onAppClick = { app ->
-                    viewModel.selectedApp(app, Constants.FLAG_LAUNCH_APP)  // Fixed: Implement app launch
+                    viewModel.selectedApp(app, Constants.FLAG_LAUNCH_APP)
                     onScreenChange("home")
                 }
             )
         }
+
+
 
 
         composable("settings") {
@@ -54,12 +60,11 @@ fun CLauncherNavigation(
             )
         }
 
-        // Add the screen later
-//        composable("hiddenApps") {
-//            HiddenAppsScreen(
-//                viewModel = viewModel,
-//                onNavigateBack = { onScreenChange("settings") }
-//            )
-//        }
+        composable("hiddenApps") {
+            HiddenAppsScreen(
+                viewModel = viewModel,
+                onNavigateBack = { onScreenChange("settings") }
+            )
+        }
     }
 }

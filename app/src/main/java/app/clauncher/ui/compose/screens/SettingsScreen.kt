@@ -1,5 +1,6 @@
 package app.clauncher.ui.compose.screens
 
+import android.app.Activity
 import android.view.Gravity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.clickable
@@ -14,7 +15,11 @@ import androidx.compose.ui.unit.dp
 import app.clauncher.MainViewModel
 import app.clauncher.data.Constants
 import app.clauncher.data.Prefs
+import app.clauncher.ui.compose.dialogs.AlignmentPickerDialog
+import app.clauncher.ui.compose.dialogs.DateTimeVisibilityDialog
 import app.clauncher.ui.compose.dialogs.NumberPickerDialog
+import app.clauncher.ui.compose.dialogs.SwipeDownActionDialog
+import app.clauncher.ui.compose.dialogs.TextSizeDialog
 import app.clauncher.ui.compose.dialogs.ThemePickerDialog
 
 @Composable
@@ -32,6 +37,7 @@ fun SettingsScreen(
     var showTextSizePicker by remember { mutableStateOf(false) }
     var showSwipeDownPicker by remember { mutableStateOf(false) }
 
+    // Existing dialogs
     NumberPickerDialog(
         show = showNumberPicker,
         currentValue = prefs.homeAppsNum,
@@ -53,7 +59,46 @@ fun SettingsScreen(
         }
     )
 
- //   TODO("Other dialogs")
+    // Add missing dialogs
+    AlignmentPickerDialog(
+        show = showAlignmentPicker,
+        currentAlignment = prefs.homeAlignment,
+        onDismiss = { showAlignmentPicker = false },
+        onAlignmentSelected = { alignment ->
+            prefs.homeAlignment = alignment
+            viewModel.updateHomeAlignment(alignment)
+        }
+    )
+
+    DateTimeVisibilityDialog(
+        show = showDateTimePicker,
+        currentVisibility = prefs.dateTimeVisibility,
+        onDismiss = { showDateTimePicker = false },
+        onVisibilitySelected = { visibility ->
+            prefs.dateTimeVisibility = visibility
+            viewModel.toggleDateTime()
+        }
+    )
+
+    TextSizeDialog(
+        show = showTextSizePicker,
+        currentSize = prefs.textSizeScale,
+        onDismiss = { showTextSizePicker = false },
+        onSizeSelected = { size ->
+            prefs.textSizeScale = size
+            // Need to recreate activity to apply text size change
+            (context as? Activity)?.recreate()
+        }
+    )
+
+    SwipeDownActionDialog(
+        show = showSwipeDownPicker,
+        currentAction = prefs.swipeDownAction,
+        onDismiss = { showSwipeDownPicker = false },
+        onActionSelected = { action ->
+            prefs.swipeDownAction = action
+        }
+    )
 
     LazyColumn(
         modifier = Modifier.fillMaxSize()
@@ -65,9 +110,7 @@ fun SettingsScreen(
                 SettingsItem(
                     title = "Home Apps Number",
                     subtitle = "${prefs.homeAppsNum} apps",
-                    onClick = {
-                        // Show number picker dialog
-                    }
+                    onClick = { showNumberPicker = true }
                 )
 
                 // App Visibility
@@ -102,9 +145,7 @@ fun SettingsScreen(
                         AppCompatDelegate.MODE_NIGHT_YES -> "Dark"
                         else -> "System"
                     },
-                    onClick = {
-                        // Show theme selection dialog
-                    }
+                    onClick = { showThemePicker = true }
                 )
 
                 // Text Size
@@ -120,9 +161,7 @@ fun SettingsScreen(
                         Constants.TextSize.SEVEN -> "7"
                         else -> "4"
                     },
-                    onClick = {
-                        // Show text size selection
-                    }
+                    onClick = { showTextSizePicker = true }
                 )
 
                 // System Font
@@ -149,9 +188,7 @@ fun SettingsScreen(
                         Gravity.END -> "Right"
                         else -> "Center"
                     },
-                    onClick = {
-                        // Show alignment options dialog
-                    },
+                    onClick = { showAlignmentPicker = true },
                     onLongClick = {
                         // Set app label alignment to match home alignment
                         prefs.appLabelAlignment = prefs.homeAlignment
@@ -186,9 +223,7 @@ fun SettingsScreen(
                         Constants.DateTime.ON -> "On"
                         else -> "Off"
                     },
-                    onClick = {
-                        // Show date time options dialog
-                    }
+                    onClick = { showDateTimePicker = true }
                 )
             }
         }
@@ -229,9 +264,7 @@ fun SettingsScreen(
                         Constants.SwipeDownAction.NOTIFICATIONS -> "Notifications"
                         else -> "Search"
                     },
-                    onClick = {
-                        // Show swipe down action options
-                    }
+                    onClick = { showSwipeDownPicker = true }
                 )
             }
         }
