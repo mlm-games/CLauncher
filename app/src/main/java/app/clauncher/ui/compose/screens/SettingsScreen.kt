@@ -36,7 +36,8 @@ import app.clauncher.ui.compose.dialogs.ThemePickerDialog
 @Composable
 fun SettingsScreen(
     viewModel: MainViewModel,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToHiddenApps: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val prefs = remember { Prefs(context) }
@@ -310,8 +311,7 @@ fun SettingsScreen(
                     SettingsItem(
                         title = "Hidden Apps",
                         onClick = {
-                            onNavigateBack()  // First go back to home
-                            // TODO: Then navigate to hidden apps (this would be handled by the parent component)
+                            onNavigateToHiddenApps()
                         }
                     )
 

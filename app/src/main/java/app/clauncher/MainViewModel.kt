@@ -145,6 +145,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _homeAlignment.value = gravity
     }
 
+    fun isAppHidden(app: AppModel): Boolean {
+        val appKey = "${app.appPackage}/${app.user}"
+        return prefs.hiddenApps.contains(appKey)
+    }
+
     /**
      * Handle selected app action based on the flag
      *

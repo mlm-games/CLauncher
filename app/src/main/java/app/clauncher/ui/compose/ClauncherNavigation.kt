@@ -19,6 +19,8 @@ import app.clauncher.ui.compose.screens.SettingsScreen
 
 /**
  * Main navigation component for CLauncher
+ *
+ * Handles navigation between different screens and maintains navigation state
  */
 @Composable
 fun CLauncherNavigation(
@@ -36,10 +38,13 @@ fun CLauncherNavigation(
         // Only navigate if we're not already on this screen
         if (currentRoute != currentScreen) {
             navController.navigate(currentScreen) {
+                // Pop up to the start destination to avoid building up a stack
                 popUpTo(navController.graph.startDestinationId) {
                     saveState = true
                 }
+                // Avoid multiple copies of the same destination
                 launchSingleTop = true
+                // Restore state when navigating back to a previously visited screen
                 restoreState = true
             }
         }
@@ -60,8 +65,7 @@ fun CLauncherNavigation(
                 onAppClick = { app ->
                     viewModel.selectedApp(app, Constants.FLAG_LAUNCH_APP)
                     onScreenChange(Navigation.HOME)
-                },
-                onNavigateBack = { onScreenChange(Navigation.HOME) }
+                }
             )
         }
 

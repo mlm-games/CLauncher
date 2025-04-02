@@ -101,7 +101,7 @@ fun HomeScreen(
                         // Lock phone functionality
                     },
                     onLongPress = {
-                        onNavigateToSettings
+                        onNavigateToSettings()
                     },
                     onTap = {
                         // Check for messages
