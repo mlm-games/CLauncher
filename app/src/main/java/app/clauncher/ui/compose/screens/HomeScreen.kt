@@ -29,8 +29,8 @@ import kotlin.math.abs
 @Composable
 fun HomeScreen(
     viewModel: MainViewModel,
-    onOpenAppDrawer: () -> Unit,
-    onOpenSettings: () -> Unit
+    onNavigateToAppDrawer: () -> Unit,
+    onNavigateToSettings: () -> Unit
 ) {
     val context = LocalContext.current
     val prefs = remember { app.clauncher.data.Prefs(context) }
@@ -75,7 +75,7 @@ fun HomeScreen(
         modifier = Modifier
             .fillMaxSize()
             .detectSwipeGestures(
-                onSwipeUp = { onOpenAppDrawer() },
+                onSwipeUp = { onNavigateToAppDrawer() },
                 onSwipeDown = {
                     if (prefs.swipeDownAction == Constants.SwipeDownAction.NOTIFICATIONS) {
                         expandNotificationDrawer(context)
@@ -101,7 +101,7 @@ fun HomeScreen(
                         // Lock phone functionality
                     },
                     onLongPress = {
-                        onOpenSettings()
+                        onNavigateToSettings
                     },
                     onTap = {
                         // Check for messages
