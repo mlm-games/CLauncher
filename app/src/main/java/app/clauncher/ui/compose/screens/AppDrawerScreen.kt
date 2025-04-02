@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -28,32 +29,34 @@ fun AppDrawerScreen(
     var searchQuery by remember { mutableStateOf("") }
     var filteredApps by remember { mutableStateOf(emptyList<AppModel>()) }
 
-    // Update filtered apps when app list or search query changes
-    LaunchedEffect(appList, searchQuery) {
-        filteredApps = if (searchQuery.isEmpty()) {
-            appList ?: emptyList()
+    // Load apps when screen is shown
+    LaunchedEffect(Unit) {
+        viewModel.loadApps()
+    }
+
+
+    // Update filtered apps when search query changes
+    LaunchedEffect(searchQuery, appList) {
+        if (searchQuery.isEmpty()) {
+            filteredApps = appList
         } else {
-            appList?.filter {
+//            viewModel.AppDrawerSearch(searchQuery)
+            filteredApps = appList.filter {
                 it.appLabel.contains(searchQuery, ignoreCase = true)
-            } ?: emptyList()
+            }
         }
     }
 
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // Search bar
+    Column(modifier = Modifier.fillMaxSize()) {
         AppDrawerSearch(
             searchQuery = searchQuery,
-            onSearchChanged = { query ->
-                searchQuery = query
-            },
+            onSearchChanged = { query -> searchQuery = query },
             onSearchSubmitted = { query ->
                 if (query.startsWith("!")) {
                     // DuckDuckGo search
                     context.openUrl(Constants.URL_DUCK_SEARCH + query.replace(" ", "%20"))
                 } else if (filteredApps.isEmpty()) {
-                    // web search
+                    // Web search
                     openSearch(context)
                 } else {
                     // Launch first app in filtered list
@@ -62,22 +65,37 @@ fun AppDrawerScreen(
             }
         )
 
-        // App list
-        LazyColumn(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(filteredApps) { app ->
-                AppItem(
-                    app = app,
-                    onClick = { onAppClick(app) },
-                    onLongClick = {
-                        viewModel.toggleAppHidden(app)
-                    }
-                )
+        // Show loading indicator if app list is empty and not filtered
+        if (appList.isEmpty() && searchQuery.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else if (filteredApps.isEmpty() && searchQuery.isNotEmpty()) {
+            // Show "no results" message for empty search results
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("No apps found matching \"$searchQuery\"")
+            }
+        } else {
+            // Show app list
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(filteredApps) { app ->
+                    AppItem(
+                        app = app,
+                        onClick = { onAppClick(app) },
+                        onLongClick = { viewModel.toggleAppHidden(app) }
+                    )
+                }
             }
         }
     }
 }
+
 
 @Composable
 fun AppDrawerSearch(

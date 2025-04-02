@@ -1,20 +1,30 @@
 package app.clauncher.ui.compose.screens
 
 import android.app.Activity
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import android.view.Gravity
+import android.view.View
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import app.clauncher.MainViewModel
 import app.clauncher.data.Constants
 import app.clauncher.data.Prefs
+import app.clauncher.helper.isClauncherDefault
 import app.clauncher.ui.compose.dialogs.AlignmentPickerDialog
 import app.clauncher.ui.compose.dialogs.DateTimeVisibilityDialog
 import app.clauncher.ui.compose.dialogs.NumberPickerDialog
@@ -22,6 +32,7 @@ import app.clauncher.ui.compose.dialogs.SwipeDownActionDialog
 import app.clauncher.ui.compose.dialogs.TextSizeDialog
 import app.clauncher.ui.compose.dialogs.ThemePickerDialog
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     viewModel: MainViewModel,
@@ -37,7 +48,7 @@ fun SettingsScreen(
     var showTextSizePicker by remember { mutableStateOf(false) }
     var showSwipeDownPicker by remember { mutableStateOf(false) }
 
-    // Existing dialogs
+    // Dialogs
     NumberPickerDialog(
         show = showNumberPicker,
         currentValue = prefs.homeAppsNum,
@@ -59,7 +70,6 @@ fun SettingsScreen(
         }
     )
 
-    // Add missing dialogs
     AlignmentPickerDialog(
         show = showAlignmentPicker,
         currentAlignment = prefs.homeAlignment,
@@ -100,201 +110,230 @@ fun SettingsScreen(
         }
     )
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // General Settings
-        item {
-            SettingsSection(title = "General") {
-                // Home Apps Number
-                SettingsItem(
-                    title = "Home Apps Number",
-                    subtitle = "${prefs.homeAppsNum} apps",
-                    onClick = { showNumberPicker = true }
-                )
-
-                // App Visibility
-                SettingsToggle(
-                    title = "Show Apps",
-                    isChecked = prefs.toggleAppVisibility,
-                    onCheckedChange = {
-                        prefs.toggleAppVisibility = it
-                        viewModel.updateShowApps(it)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Settings") },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
                     }
-                )
-
-                // Auto Show Keyboard
-                SettingsToggle(
-                    title = "Auto Show Keyboard",
-                    isChecked = prefs.autoShowKeyboard,
-                    onCheckedChange = {
-                        prefs.autoShowKeyboard = it
-                    }
-                )
-            }
+                }
+            )
         }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            item {
+                SettingsSection(title = "General") {
+                    SettingsItem(
+                        title = "Home Apps Number",
+                        subtitle = "${prefs.homeAppsNum} apps",
+                        onClick = { showNumberPicker = true }
+                    )
 
-        // Appearance Settings
-        item {
-            SettingsSection(title = "Appearance") {
-                // Theme Selector
-                SettingsItem(
-                    title = "Theme",
-                    subtitle = when(prefs.appTheme) {
-                        AppCompatDelegate.MODE_NIGHT_NO -> "Light"
-                        AppCompatDelegate.MODE_NIGHT_YES -> "Dark"
-                        else -> "System"
-                    },
-                    onClick = { showThemePicker = true }
-                )
+                    SettingsToggle(
+                        title = "Show Apps",
+                        isChecked = prefs.toggleAppVisibility,
+                        onCheckedChange = {
+                            prefs.toggleAppVisibility = it
+                            viewModel.updateShowApps(it)
+                        }
+                    )
 
-                // Text Size
-                SettingsItem(
-                    title = "Text Size",
-                    subtitle = when(prefs.textSizeScale) {
-                        Constants.TextSize.ONE -> "1"
-                        Constants.TextSize.TWO -> "2"
-                        Constants.TextSize.THREE -> "3"
-                        Constants.TextSize.FOUR -> "4"
-                        Constants.TextSize.FIVE -> "5"
-                        Constants.TextSize.SIX -> "6"
-                        Constants.TextSize.SEVEN -> "7"
-                        else -> "4"
-                    },
-                    onClick = { showTextSizePicker = true }
-                )
-
-                // System Font
-                SettingsToggle(
-                    title = "Use System Font",
-                    isChecked = prefs.useSystemFont,
-                    onCheckedChange = {
-                        prefs.useSystemFont = it
-                        // Would need activity recreation to apply font change
-                    }
-                )
+                    SettingsToggle(
+                        title = "Auto Show Keyboard",
+                        isChecked = prefs.autoShowKeyboard,
+                        onCheckedChange = {
+                            prefs.autoShowKeyboard = it
+                        }
+                    )
+                }
             }
-        }
 
-        // Layout Settings
-        item {
-            SettingsSection(title = "Layout") {
-                // Alignment
-                SettingsItem(
-                    title = "Alignment",
-                    subtitle = when(prefs.homeAlignment) {
-                        Gravity.START -> "Left"
-                        Gravity.CENTER -> "Center"
-                        Gravity.END -> "Right"
-                        else -> "Center"
-                    },
-                    onClick = { showAlignmentPicker = true },
-                    onLongClick = {
-                        // Set app label alignment to match home alignment
-                        prefs.appLabelAlignment = prefs.homeAlignment
-                    }
-                )
+            item {
+                SettingsSection(title = "Appearance") {
+                    SettingsItem(
+                        title = "Theme",
+                        subtitle = when(prefs.appTheme) {
+                            AppCompatDelegate.MODE_NIGHT_NO -> "Light"
+                            AppCompatDelegate.MODE_NIGHT_YES -> "Dark"
+                            else -> "System"
+                        },
+                        onClick = { showThemePicker = true }
+                    )
 
-                // Bottom Alignment
-                SettingsToggle(
-                    title = "Bottom Alignment",
-                    isChecked = prefs.homeBottomAlignment,
-                    onCheckedChange = {
-                        prefs.homeBottomAlignment = it
-                        viewModel.updateHomeAlignment(prefs.homeAlignment)
-                    }
-                )
+                    SettingsItem(
+                        title = "Text Size",
+                        subtitle = when(prefs.textSizeScale) {
+                            Constants.TextSize.ONE -> "1 (Smallest)"
+                            Constants.TextSize.TWO -> "2"
+                            Constants.TextSize.THREE -> "3"
+                            Constants.TextSize.FOUR -> "4 (Default)"
+                            Constants.TextSize.FIVE -> "5"
+                            Constants.TextSize.SIX -> "6"
+                            Constants.TextSize.SEVEN -> "7 (Largest)"
+                            else -> "4 (Default)"
+                        },
+                        onClick = { showTextSizePicker = true }
+                    )
 
-                // Status Bar
-                SettingsToggle(
-                    title = "Show Status Bar",
-                    isChecked = prefs.showStatusBar,
-                    onCheckedChange = {
-                        prefs.showStatusBar = it
-                        // Apply status bar visibility change
-                    }
-                )
-
-                // Date Time
-                SettingsItem(
-                    title = "Date & Time",
-                    subtitle = when(prefs.dateTimeVisibility) {
-                        Constants.DateTime.DATE_ONLY -> "Date only"
-                        Constants.DateTime.ON -> "On"
-                        else -> "Off"
-                    },
-                    onClick = { showDateTimePicker = true }
-                )
+                    SettingsToggle(
+                        title = "Use System Font",
+                        isChecked = prefs.useSystemFont,
+                        onCheckedChange = {
+                            prefs.useSystemFont = it
+                            // Would need activity recreation to apply font change
+                            (context as? Activity)?.recreate()
+                        }
+                    )
+                }
             }
-        }
 
-        // Gestures Settings
-        item {
-            SettingsSection(title = "Gestures") {
-                // Swipe Left App
-                SettingsItem(
-                    title = "Swipe Left App",
-                    subtitle = if (prefs.swipeLeftEnabled) prefs.appNameSwipeLeft else "Disabled",
-                    onClick = {
-                        // Navigate to app selection if enabled
-                    },
-                    onLongClick = {
-                        // Toggle swipe left enabled
-                        prefs.swipeLeftEnabled = !prefs.swipeLeftEnabled
-                    }
-                )
+            item {
+                SettingsSection(title = "Layout") {
+                    SettingsItem(
+                        title = "Alignment",
+                        subtitle = when(prefs.homeAlignment) {
+                            Gravity.START -> "Left"
+                            Gravity.CENTER -> "Center"
+                            Gravity.END -> "Right"
+                            else -> "Center"
+                        },
+                        onClick = { showAlignmentPicker = true },
+                        onLongClick = {
+                            // Set app label alignment to match home alignment
+                            prefs.appLabelAlignment = prefs.homeAlignment
+                        }
+                    )
 
-                // Swipe Right App
-                SettingsItem(
-                    title = "Swipe Right App",
-                    subtitle = if (prefs.swipeRightEnabled) prefs.appNameSwipeRight else "Disabled",
-                    onClick = {
-                        // Navigate to app selection if enabled
-                    },
-                    onLongClick = {
-                        // Toggle swipe right enabled
-                        prefs.swipeRightEnabled = !prefs.swipeRightEnabled
-                    }
-                )
+                    SettingsToggle(
+                        title = "Bottom Alignment",
+                        isChecked = prefs.homeBottomAlignment,
+                        onCheckedChange = {
+                            prefs.homeBottomAlignment = it
+                            viewModel.updateHomeAlignment(prefs.homeAlignment)
+                        }
+                    )
 
-                // Swipe Down Action
-                SettingsItem(
-                    title = "Swipe Down Action",
-                    subtitle = when(prefs.swipeDownAction) {
-                        Constants.SwipeDownAction.NOTIFICATIONS -> "Notifications"
-                        else -> "Search"
-                    },
-                    onClick = { showSwipeDownPicker = true }
-                )
+                    SettingsToggle(
+                        title = "Show Status Bar",
+                        isChecked = prefs.showStatusBar,
+                        onCheckedChange = {
+                            prefs.showStatusBar = it
+                            if (context is Activity) {
+                                if (it) {
+                                    context.window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
+                                } else {
+                                    context.window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
+                                }
+                            }
+                        }
+                    )
+
+                    SettingsItem(
+                        title = "Date & Time",
+                        subtitle = when(prefs.dateTimeVisibility) {
+                            Constants.DateTime.DATE_ONLY -> "Date only"
+                            Constants.DateTime.ON -> "On"
+                            else -> "Off"
+                        },
+                        onClick = { showDateTimePicker = true }
+                    )
+                }
             }
-        }
 
-        // System Settings
-        item {
-            SettingsSection(title = "System") {
-                // Default Launcher
-                SettingsItem(
-                    title = "Set as Default Launcher",
-                    onClick = {
-                        viewModel.resetLauncherLiveData.call()
-                    }
-                )
+            item {
+                SettingsSection(title = "Gestures") {
+                    // Swipe Left App
+                    SettingsItem(
+                        title = "Swipe Left App",
+                        subtitle = if (prefs.swipeLeftEnabled) prefs.appNameSwipeLeft ?: "Not set" else "Disabled",
+                        onClick = {
+                            if (prefs.swipeLeftEnabled) {
+                                // Navigate to app selection
+                                // This would typically navigate to app drawer with a selection mode
+                                // For now, just toggle the enabled state
+                                prefs.swipeLeftEnabled = !prefs.swipeLeftEnabled
+                            }
+                        },
+                        onLongClick = {
+                            // Toggle swipe left enabled
+                            prefs.swipeLeftEnabled = !prefs.swipeLeftEnabled
+                        }
+                    )
 
-                // Hidden Apps
-                SettingsItem(
-                    title = "Hidden Apps",
-                    onClick = {
-                        // Navigate to hidden apps screen
-                    }
-                )
+                    SettingsItem(
+                        title = "Swipe Right App",
+                        subtitle = if (prefs.swipeRightEnabled) prefs.appNameSwipeRight ?: "Not set" else "Disabled",
+                        onClick = {
+                            if (prefs.swipeRightEnabled) {
+                                // Navigate to app selection
+                                // This would typically navigate to app drawer with a selection mode
+                                // For now, just toggle the enabled state
+                                prefs.swipeRightEnabled = !prefs.swipeRightEnabled
+                            }
+                        },
+                        onLongClick = {
+                            prefs.swipeRightEnabled = !prefs.swipeRightEnabled
+                        }
+                    )
 
-                // App Info
-                SettingsItem(
-                    title = "App Info",
-                    onClick = {
-                        // Open app info in system settings
-                    }
-                )
+                    // Swipe Down Action
+                    SettingsItem(
+                        title = "Swipe Down Action",
+                        subtitle = when(prefs.swipeDownAction) {
+                            Constants.SwipeDownAction.NOTIFICATIONS -> "Notifications"
+                            else -> "Search"
+                        },
+                        onClick = { showSwipeDownPicker = true }
+                    )
+                }
+            }
+
+            item {
+                SettingsSection(title = "System") {
+                    SettingsItem(
+                        title = "Set as Default Launcher",
+                        subtitle = if (isClauncherDefault(context)) "CLauncher is default" else "CLauncher is not default",
+                        onClick = {
+                            viewModel.resetLauncherLiveData.call()
+                        }
+                    )
+
+                    SettingsItem(
+                        title = "Hidden Apps",
+                        onClick = {
+                            onNavigateBack()  // First go back to home
+                            // TODO: Then navigate to hidden apps (this would be handled by the parent component)
+                        }
+                    )
+
+                    SettingsItem(
+                        title = "App Info",
+                        onClick = {
+                            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                data = Uri.fromParts("package", context.packageName, null)
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            context.startActivity(intent)
+                        }
+                    )
+
+                    SettingsItem(
+                        title = "About CLauncher",
+                        subtitle = "Version ${context.packageManager.getPackageInfo(context.packageName, 0).versionName}",
+                        onClick = {
+                            viewModel.showDialog.value = Constants.Dialog.ABOUT
+                        }
+                    )
+                }
             }
         }
     }
@@ -337,6 +376,14 @@ fun SettingsItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
+            .pointerInput(Unit) {
+                if (onLongClick != null) {
+                    detectTapGestures(
+                        onLongPress = { onLongClick() },
+                        onTap = { onClick() }
+                    )
+                }
+            }
             .padding(vertical = 8.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
