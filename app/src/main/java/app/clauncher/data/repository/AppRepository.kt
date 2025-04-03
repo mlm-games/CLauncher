@@ -39,9 +39,15 @@ class AppRepository(
      * Load all visible apps
      */
     suspend fun loadApps() {
-        val apps = getAppsList(context, prefs, includeRegularApps =
-            true, includeHiddenApps = false)
-        _appList.value = apps
+        try {
+            val apps = getAppsList(context, prefs, includeRegularApps = true, includeHiddenApps = false)
+            // Debug logging
+            println("Loaded ${apps.size} apps")
+            _appList.value = apps
+        } catch (e: Exception) {
+            println("Error loading apps: ${e.message}")
+            e.printStackTrace()
+        }
     }
 
     /**

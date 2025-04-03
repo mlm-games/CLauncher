@@ -39,7 +39,7 @@ app state and user interactions.
  */
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val appContext by lazy { application.applicationContext }
-    private val prefsDataStore by lazy { PrefsDataStore(appContext) }
+    internal val prefsDataStore by lazy { PrefsDataStore(appContext) }
     private val appRepository by lazy { AppRepository(appContext, prefsDataStore) }
     private val permissionManager by lazy { PermissionManager(appContext) }
 
@@ -81,7 +81,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var searchJob: kotlinx.coroutines.Job? = null
 
     // Events system
-    private val _eventsManager = EventsManager()
+    internal val _eventsManager = EventsManager()
     val events = _eventsManager.events
 
     // Single event triggers REMOVE

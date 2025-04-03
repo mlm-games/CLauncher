@@ -36,7 +36,6 @@ import androidx.appcompat.app.AppCompatDelegate
 import app.clauncher.R
 import app.clauncher.data.AppModel
 import app.clauncher.data.Constants
-import app.clauncher.data.Prefs
 import app.clauncher.data.PrefsDataStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -120,16 +119,16 @@ suspend fun getAppsList(
 
 // This is to ensure backward compatibility with older app versions
 // which did not support multiple user profiles
-private fun upgradeHiddenApps(prefs: Prefs) {
-    val hiddenAppsSet = prefs.hiddenApps
-    val newHiddenAppsSet = mutableSetOf<String>()
-    for (hiddenPackage in hiddenAppsSet) {
-        if (hiddenPackage.contains("|")) newHiddenAppsSet.add(hiddenPackage)
-        else newHiddenAppsSet.add(hiddenPackage + android.os.Process.myUserHandle().toString())
-    }
-    prefs.hiddenApps = newHiddenAppsSet
-    prefs.hiddenAppsUpdated = true
-}
+//private fun upgradeHiddenApps(prefs: Prefs) {
+//    val hiddenAppsSet = prefs.hiddenApps
+//    val newHiddenAppsSet = mutableSetOf<String>()
+//    for (hiddenPackage in hiddenAppsSet) {
+//        if (hiddenPackage.contains("|")) newHiddenAppsSet.add(hiddenPackage)
+//        else newHiddenAppsSet.add(hiddenPackage + android.os.Process.myUserHandle().toString())
+//    }
+//    prefs.hiddenApps = newHiddenAppsSet
+//    prefs.hiddenAppsUpdated = true
+//}
 
 fun isPackageInstalled(context: Context, packageName: String, userString: String): Boolean {
     val launcher = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps

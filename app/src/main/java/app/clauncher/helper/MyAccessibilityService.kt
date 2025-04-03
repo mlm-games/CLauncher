@@ -7,7 +7,7 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.annotation.RequiresApi
 import app.clauncher.R
-import app.clauncher.data.Prefs
+import app.clauncher.data.PrefsDataStore
 
 class MyAccessibilityService : AccessibilityService() {
 
@@ -16,7 +16,7 @@ class MyAccessibilityService : AccessibilityService() {
     }
 
     override fun onServiceConnected() {
-        Prefs(applicationContext).lockModeOn = true
+//    Called by a suspend only.    PrefsDataStore(applicationContext).setLockMode(true)
         super.onServiceConnected()
     }
 

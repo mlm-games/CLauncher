@@ -15,6 +15,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -25,7 +26,6 @@ import app.clauncher.data.PrefsDataStore
 import app.clauncher.helper.isDarkThemeOn
 import app.clauncher.helper.isEinkDisplay
 import app.clauncher.helper.isTablet
-import app.clauncher.helper.resetLauncherViaFakeActivity
 import app.clauncher.helper.setPlainWallpaper
 import app.clauncher.helper.showLauncherSelector
 import app.clauncher.ui.compose.CLauncherNavigation
@@ -38,8 +38,6 @@ class MainActivity : ComponentActivity() {
     private lateinit var viewModel: MainViewModel
 
     override fun attachBaseContext(context: Context) {
-        val newConfig = Configuration(context.resources.configuration)
-        //newConfig.fontScale = Prefs(context).textSizeScale
         super.attachBaseContext(context)
     }
 
@@ -72,6 +70,17 @@ class MainActivity : ComponentActivity() {
         window.addFlags(FLAG_LAYOUT_NO_LIMITS)
 
         setContent {
+//  FIXME: causes the app to not load, even app loading doesn't work due to the same error: null cannot be cast to non-null type kotlin.collections.Set<kotlin.String>
+            //val context = LocalContext.current
+//            val textSizeScale by prefsDataStore.textSizeScale.collectAsState(initial = 1.0f)
+//
+//            LaunchedEffect(textSizeScale) {
+//                val newConfig = Configuration(context.resources.configuration)
+//                newConfig.fontScale = textSizeScale
+//                context.createConfigurationContext(newConfig)
+//                this@MainActivity.recreate()
+//            }
+
             CLauncherTheme {
                 var currentScreen by remember { mutableStateOf("home") }
 
@@ -82,6 +91,7 @@ class MainActivity : ComponentActivity() {
                         currentScreen = screen
                     }
                 )
+
             }
         }
 
@@ -150,7 +160,14 @@ class MainActivity : ComponentActivity() {
                             prefsDataStore.setLockMode(true)
                         }
                     }
-                    Constants.REQUEST_CODE_LAUNCHER_SELECTOR -> resetLauncherViaFakeActivity()
+                    Constants.REQUEST_CODE_LAUNCHER_SELECTOR -> {
+                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                            startActivity(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
+                        } else {
+                            showLauncherSelector(Constants.REQUEST_CODE_LAUNCHER_SELECTOR)
+                        }
+
+                    }
                 }
             }
         }

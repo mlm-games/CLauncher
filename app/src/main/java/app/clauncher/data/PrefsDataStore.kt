@@ -179,7 +179,7 @@ class PrefsDataStore(private val context: Context) {
     }
 
     val hiddenApps: Flow<Set<String>> = context.dataStore.data.map { preferences ->
-        preferences[HIDDEN_APPS] as Set<String>
+        preferences[HIDDEN_APPS] ?: emptySet()
     }
 
     val hiddenAppsUpdated: Flow<Boolean> = context.dataStore.data.map { preferences ->

@@ -23,7 +23,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import app.clauncher.MainViewModel
 import app.clauncher.data.Constants
-import app.clauncher.data.Prefs
 import app.clauncher.helper.isClauncherDefault
 import app.clauncher.ui.compose.dialogs.AlignmentPickerDialog
 import app.clauncher.ui.compose.dialogs.DateTimeVisibilityDialog
@@ -31,6 +30,7 @@ import app.clauncher.ui.compose.dialogs.NumberPickerDialog
 import app.clauncher.ui.compose.dialogs.SwipeDownActionDialog
 import app.clauncher.ui.compose.dialogs.TextSizeDialog
 import app.clauncher.ui.compose.dialogs.ThemePickerDialog
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,7 +40,26 @@ fun SettingsScreen(
     onNavigateToHiddenApps: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    val prefs = remember { Prefs(context) }
+    val prefsDataStore = remember { viewModel.prefsDataStore }
+
+    // Collect preference flows as state
+    val homeAppsNum by viewModel.homeAppsNum.collectAsState()
+    val homeAlignment by viewModel.homeAlignment.collectAsState()
+    val dateTimeVisibility by viewModel.dateTimeVisibility.collectAsState()
+
+    // Additional state collections
+    val showAppNames by prefsDataStore.showAppNames.collectAsState(initial = true)
+    val autoShowKeyboard by prefsDataStore.autoShowKeyboard.collectAsState(initial = true)
+    val appTheme by prefsDataStore.appTheme.collectAsState(initial = AppCompatDelegate.MODE_NIGHT_YES)
+    val textSizeScale by prefsDataStore.textSizeScale.collectAsState(initial = 1.0f)
+    val useSystemFont by prefsDataStore.useSystemFont.collectAsState(initial = true)
+    val homeBottomAlignment by prefsDataStore.homeBottomAlignment.collectAsState(initial = false)
+    val statusBar by prefsDataStore.statusBar.collectAsState(initial = false)
+    val swipeLeftEnabled by prefsDataStore.swipeLeftEnabled.collectAsState(initial = true)
+    val swipeRightEnabled by prefsDataStore.swipeRightEnabled.collectAsState(initial = true)
+    val appNameSwipeLeft by prefsDataStore.appNameSwipeLeft.collectAsState(initial = "Camera")
+    val appNameSwipeRight by prefsDataStore.appNameSwipeRight.collectAsState(initial = "Phone")
+    val swipeDownAction by prefsDataStore.swipeDownAction.collectAsState(initial = Constants.SwipeDownAction.NOTIFICATIONS)
 
     var showNumberPicker by remember { mutableStateOf(false) }
     var showThemePicker by remember { mutableStateOf(false) }
@@ -49,70 +68,83 @@ fun SettingsScreen(
     var showTextSizePicker by remember { mutableStateOf(false) }
     var showSwipeDownPicker by remember { mutableStateOf(false) }
 
+    val coroutineScope = rememberCoroutineScope()
+
     // Dialogs
     NumberPickerDialog(
         show = showNumberPicker,
-        currentValue = prefs.homeAppsNum,
+        currentValue = homeAppsNum,
         range = 0..8,
         onDismiss = { showNumberPicker = false },
         onValueSelected = { newValue ->
-            prefs.homeAppsNum = newValue
-            viewModel.refreshHome(true)
+            coroutineScope.launch {
+                prefsDataStore.setHomeAppsNum(newValue)
+                viewModel.refreshHome(true)
+            }
         }
     )
 
     ThemePickerDialog(
         show = showThemePicker,
-        currentTheme = prefs.appTheme,
+        currentTheme = appTheme,
         onDismiss = { showThemePicker = false },
         onThemeSelected = { newTheme ->
-            if (prefs.appTheme != newTheme) {
-                prefs.appTheme = newTheme
-                AppCompatDelegate.setDefaultNightMode(newTheme)
-                (context as? Activity)?.recreate()
+            coroutineScope.launch {
+                if (appTheme != newTheme) {
+                    prefsDataStore.setAppTheme(newTheme)
+                    AppCompatDelegate.setDefaultNightMode(newTheme)
+                    (context as? Activity)?.recreate()
+                }
             }
             showThemePicker = false
         }
     )
 
-
     AlignmentPickerDialog(
         show = showAlignmentPicker,
-        currentAlignment = prefs.homeAlignment,
+        currentAlignment = homeAlignment,
         onDismiss = { showAlignmentPicker = false },
         onAlignmentSelected = { alignment ->
-            prefs.homeAlignment = alignment
-            viewModel.updateHomeAlignment(alignment)
+            coroutineScope.launch {
+                prefsDataStore.setHomeAlignment(alignment)
+                viewModel.updateHomeAlignment(alignment)
+            }
         }
     )
 
     DateTimeVisibilityDialog(
         show = showDateTimePicker,
-        currentVisibility = prefs.dateTimeVisibility,
+        currentVisibility = dateTimeVisibility,
         onDismiss = { showDateTimePicker = false },
         onVisibilitySelected = { visibility ->
-            prefs.dateTimeVisibility = visibility
-            viewModel.toggleDateTime()
+            coroutineScope.launch {
+                prefsDataStore.setDateTimeVisibility(visibility)
+                viewModel.toggleDateTime()
+            }
         }
     )
 
     TextSizeDialog(
         show = showTextSizePicker,
-        currentSize = prefs.textSizeScale,
+        currentSize = textSizeScale,
         onDismiss = { showTextSizePicker = false },
         onSizeSelected = { size ->
-            prefs.textSizeScale = size
-            // Need to recreate activity to apply text size change
-            (context as? Activity)?.recreate()
+            coroutineScope.launch {
+                prefsDataStore.setTextSizeScale(size)
+                // Need to recreate activity to apply text size change
+                (context as? Activity)?.recreate()
+            }
         }
     )
 
     SwipeDownActionDialog(
         show = showSwipeDownPicker,
-        currentAction = prefs.swipeDownAction,
+        currentAction = swipeDownAction,
         onDismiss = { showSwipeDownPicker = false },
         onActionSelected = { action ->
-            prefs.swipeDownAction = action
+            coroutineScope.launch {
+                prefsDataStore.setSwipeDownAction(action)
+            }
         }
     )
 
@@ -140,24 +172,28 @@ fun SettingsScreen(
                 SettingsSection(title = "General") {
                     SettingsItem(
                         title = "Home Apps Number",
-                        subtitle = "${prefs.homeAppsNum} apps",
+                        subtitle = "$homeAppsNum apps",
                         onClick = { showNumberPicker = true }
                     )
 
                     SettingsToggle(
                         title = "Show Apps",
-                        isChecked = prefs.toggleAppVisibility,
+                        isChecked = showAppNames,
                         onCheckedChange = {
-                            prefs.toggleAppVisibility = it
-                            viewModel.updateShowApps(it)
+                            coroutineScope.launch {
+                                prefsDataStore.setShowAppNames(it)
+                                viewModel.updateShowApps(it)
+                            }
                         }
                     )
 
                     SettingsToggle(
                         title = "Auto Show Keyboard",
-                        isChecked = prefs.autoShowKeyboard,
+                        isChecked = autoShowKeyboard,
                         onCheckedChange = {
-                            prefs.autoShowKeyboard = it
+                            coroutineScope.launch {
+                                prefsDataStore.setAutoShowKeyboard(it)
+                            }
                         }
                     )
                 }
@@ -167,7 +203,7 @@ fun SettingsScreen(
                 SettingsSection(title = "Appearance") {
                     SettingsItem(
                         title = "Theme",
-                        subtitle = when(prefs.appTheme) {
+                        subtitle = when(appTheme) {
                             AppCompatDelegate.MODE_NIGHT_NO -> "Light"
                             AppCompatDelegate.MODE_NIGHT_YES -> "Dark"
                             AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM -> "System"
@@ -178,7 +214,7 @@ fun SettingsScreen(
 
                     SettingsItem(
                         title = "Text Size",
-                        subtitle = when(prefs.textSizeScale) {
+                        subtitle = when(textSizeScale) {
                             Constants.TextSize.ONE -> "1 (Smallest)"
                             Constants.TextSize.TWO -> "2"
                             Constants.TextSize.THREE -> "3"
@@ -193,11 +229,13 @@ fun SettingsScreen(
 
                     SettingsToggle(
                         title = "Use System Font",
-                        isChecked = prefs.useSystemFont,
+                        isChecked = useSystemFont,
                         onCheckedChange = {
-                            prefs.useSystemFont = it
-                            // Would need activity recreation to apply font change
-                            (context as? Activity)?.recreate()
+                            coroutineScope.launch {
+                                prefsDataStore.setUseSystemFont(it)
+                                // Would need activity recreation to apply font change
+                                (context as? Activity)?.recreate()
+                            }
                         }
                     )
                 }
@@ -207,7 +245,7 @@ fun SettingsScreen(
                 SettingsSection(title = "Layout") {
                     SettingsItem(
                         title = "Alignment",
-                        subtitle = when(prefs.homeAlignment) {
+                        subtitle = when(homeAlignment) {
                             Gravity.START -> "Left"
                             Gravity.CENTER -> "Center"
                             Gravity.END -> "Right"
@@ -216,29 +254,35 @@ fun SettingsScreen(
                         onClick = { showAlignmentPicker = true },
                         onLongClick = {
                             // Set app label alignment to match home alignment
-                            prefs.appLabelAlignment = prefs.homeAlignment
+                            coroutineScope.launch {
+                                prefsDataStore.setAppLabelAlignment(homeAlignment)
+                            }
                         }
                     )
 
                     SettingsToggle(
                         title = "Bottom Alignment",
-                        isChecked = prefs.homeBottomAlignment,
+                        isChecked = homeBottomAlignment,
                         onCheckedChange = {
-                            prefs.homeBottomAlignment = it
-                            viewModel.updateHomeAlignment(prefs.homeAlignment)
+                            coroutineScope.launch {
+                                prefsDataStore.setHomeBottomAlignment(it)
+                                viewModel.updateHomeAlignment(homeAlignment)
+                            }
                         }
                     )
 
                     SettingsToggle(
                         title = "Show Status Bar",
-                        isChecked = prefs.showStatusBar,
+                        isChecked = statusBar,
                         onCheckedChange = {
-                            prefs.showStatusBar = it
-                            if (context is Activity) {
-                                if (it) {
-                                    context.window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
-                                } else {
-                                    context.window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
+                            coroutineScope.launch {
+                                prefsDataStore.setStatusBar(it)
+                                if (context is Activity) {
+                                    if (it) {
+                                        context.window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
+                                    } else {
+                                        context.window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
+                                    }
                                 }
                             }
                         }
@@ -246,7 +290,7 @@ fun SettingsScreen(
 
                     SettingsItem(
                         title = "Date & Time",
-                        subtitle = when(prefs.dateTimeVisibility) {
+                        subtitle = when(dateTimeVisibility) {
                             Constants.DateTime.DATE_ONLY -> "Date only"
                             Constants.DateTime.ON -> "On"
                             else -> "Off"
@@ -261,41 +305,49 @@ fun SettingsScreen(
                     // Swipe Left App
                     SettingsItem(
                         title = "Swipe Left App",
-                        subtitle = if (prefs.swipeLeftEnabled) prefs.appNameSwipeLeft ?: "Not set" else "Disabled",
+                        subtitle = if (swipeLeftEnabled) appNameSwipeLeft ?: "Not set" else "Disabled",
                         onClick = {
-                            if (prefs.swipeLeftEnabled) {
+                            if (swipeLeftEnabled) {
                                 // Navigate to app selection
                                 // This would typically navigate to app drawer with a selection mode
                                 // For now, just toggle the enabled state
-                                prefs.swipeLeftEnabled = !prefs.swipeLeftEnabled
+                                coroutineScope.launch {
+                                    prefsDataStore.setSwipeLeftEnabled(!swipeLeftEnabled)
+                                }
                             }
                         },
                         onLongClick = {
                             // Toggle swipe left enabled
-                            prefs.swipeLeftEnabled = !prefs.swipeLeftEnabled
+                            coroutineScope.launch {
+                                prefsDataStore.setSwipeLeftEnabled(!swipeLeftEnabled)
+                            }
                         }
                     )
 
                     SettingsItem(
                         title = "Swipe Right App",
-                        subtitle = if (prefs.swipeRightEnabled) prefs.appNameSwipeRight ?: "Not set" else "Disabled",
+                        subtitle = if (swipeRightEnabled) appNameSwipeRight ?: "Not set" else "Disabled",
                         onClick = {
-                            if (prefs.swipeRightEnabled) {
+                            if (swipeRightEnabled) {
                                 // Navigate to app selection
                                 // This would typically navigate to app drawer with a selection mode
                                 // For now, just toggle the enabled state
-                                prefs.swipeRightEnabled = !prefs.swipeRightEnabled
+                                coroutineScope.launch {
+                                    prefsDataStore.setSwipeRightEnabled(!swipeRightEnabled)
+                                }
                             }
                         },
                         onLongClick = {
-                            prefs.swipeRightEnabled = !prefs.swipeRightEnabled
+                            coroutineScope.launch {
+                                prefsDataStore.setSwipeRightEnabled(!swipeRightEnabled)
+                            }
                         }
                     )
 
                     // Swipe Down Action
                     SettingsItem(
                         title = "Swipe Down Action",
-                        subtitle = when(prefs.swipeDownAction) {
+                        subtitle = when(swipeDownAction) {
                             Constants.SwipeDownAction.NOTIFICATIONS -> "Notifications"
                             else -> "Search"
                         },
@@ -310,7 +362,8 @@ fun SettingsScreen(
                         title = "Set as Default Launcher",
                         subtitle = if (isClauncherDefault(context)) "CLauncher is default" else "CLauncher is not default",
                         onClick = {
-//                            viewModel.resetLauncherLiveData.call()
+                            // Use events manager instead of LiveData
+//                            viewModel._eventsManager.emitEvent("resetLauncher") //FIXME:Same as below
                         }
                     )
 
@@ -336,7 +389,8 @@ fun SettingsScreen(
                         title = "About CLauncher",
                         subtitle = "Version ${context.packageManager.getPackageInfo(context.packageName, 0).versionName}",
                         onClick = {
-//                            viewModel.showDialog.value = Constants.Dialog.ABOUT
+                            // Use events manager instead of LiveData
+//                            viewModel._eventsManager.emitEvent("showAboutDialog")  FIXME:Suspend function 'suspend fun emitEvent(event: UiEvent): Unit' should be called only from a coroutine or another suspend function.
                         }
                     )
                 }

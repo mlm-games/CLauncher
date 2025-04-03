@@ -19,7 +19,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.style.TextOverflow
@@ -27,11 +26,12 @@ import androidx.compose.ui.unit.dp
 import app.clauncher.MainViewModel
 import app.clauncher.data.AppModel
 import app.clauncher.data.Constants
-import app.clauncher.data.Prefs
 import app.clauncher.helper.openSearch
 import app.clauncher.ui.compose.AppDrawerSearch
 import kotlinx.coroutines.delay
 import androidx.core.net.toUri
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -40,16 +40,23 @@ fun AppDrawerScreen(
     onAppClick: (AppModel) -> Unit
 ) {
     val context = LocalContext.current
-    val prefs = remember { Prefs(context) }
+    val prefsDataStore = remember { viewModel.prefsDataStore }
     val appList by viewModel.appList.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     var filteredApps by remember { mutableStateOf(appList) }
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    // Collect preferences
+    val autoShowKeyboard by prefsDataStore.autoShowKeyboard.collectAsState(initial = true)
+    val showAppNames by prefsDataStore.showAppNames.collectAsState(initial = true)
+    val homeAppsNum by viewModel.homeAppsNum.collectAsState()
+
     // Selected app for context menu
     var selectedApp by remember { mutableStateOf<AppModel?>(null) }
     var showContextMenu by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
 
     // Load apps when screen is shown
     LaunchedEffect(Unit) {
@@ -69,7 +76,7 @@ fun AppDrawerScreen(
 
     // Auto-focus search field and show keyboard
     LaunchedEffect(Unit) {
-        if (prefs.autoShowKeyboard) {
+        if (autoShowKeyboard) {
             delay(100) // Small delay to ensure UI is ready
             focusRequester.requestFocus()
             keyboardController?.show()
@@ -145,7 +152,7 @@ fun AppDrawerScreen(
                             .padding(horizontal = 20.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        if (prefs.toggleAppVisibility && app.appIcon != null) {
+                        if (showAppNames && app.appIcon != null) {
                             androidx.compose.foundation.Image(
                                 bitmap = app.appIcon,
                                 contentDescription = null,
@@ -214,24 +221,36 @@ fun AppDrawerScreen(
                         text = "Add to Home Screen",
                         icon = Icons.Default.Add
                     ) {
-                        // Add to home screen logic
-                        // Find an empty slot
-                        for (i in 1..prefs.homeAppsNum) {
-                            val isSlotEmpty = when (i) {
-                                1 -> prefs.appPackage1.isNullOrEmpty()
-                                2 -> prefs.appPackage2.isNullOrEmpty()
-                                3 -> prefs.appPackage3.isNullOrEmpty()
-                                4 -> prefs.appPackage4.isNullOrEmpty()
-                                5 -> prefs.appPackage5.isNullOrEmpty()
-                                6 -> prefs.appPackage6.isNullOrEmpty()
-                                7 -> prefs.appPackage7.isNullOrEmpty()
-                                8 -> prefs.appPackage8.isNullOrEmpty()
-                                else -> false
-                            }
+                        // Find an empty slot and add the app to it
+                        coroutineScope.launch {
+                            for (i in 1..homeAppsNum) {
+                                // Get app package for each position
+                                var isSlotEmpty = false
 
-                            if (isSlotEmpty) {
-                                viewModel.selectedApp(app, i) // Use position as flag
-                                break
+                                when (i) {
+                                    1 -> prefsDataStore.appPackage1.collectLatest { isSlotEmpty = it.isEmpty() }
+                                    2 -> prefsDataStore.appPackage2.collectLatest { isSlotEmpty = it.isEmpty() }
+                                    3 -> prefsDataStore.appPackage3.collectLatest { isSlotEmpty = it.isEmpty() }
+                                    4 -> prefsDataStore.appPackage4.collectLatest { isSlotEmpty = it.isEmpty() }
+                                    5 -> prefsDataStore.appPackage5.collectLatest { isSlotEmpty = it.isEmpty() }
+                                    6 -> prefsDataStore.appPackage6.collectLatest { isSlotEmpty = it.isEmpty() }
+                                    7 -> prefsDataStore.appPackage7.collectLatest { isSlotEmpty = it.isEmpty() }
+                                    8 -> prefsDataStore.appPackage8.collectLatest { isSlotEmpty = it.isEmpty() }
+                                }
+
+                                if (isSlotEmpty) {
+                                    when (i) {
+                                        1 -> viewModel.selectedApp(app, Constants.FLAG_SET_HOME_APP_1)
+                                        2 -> viewModel.selectedApp(app, Constants.FLAG_SET_HOME_APP_2)
+                                        3 -> viewModel.selectedApp(app, Constants.FLAG_SET_HOME_APP_3)
+                                        4 -> viewModel.selectedApp(app, Constants.FLAG_SET_HOME_APP_4)
+                                        5 -> viewModel.selectedApp(app, Constants.FLAG_SET_HOME_APP_5)
+                                        6 -> viewModel.selectedApp(app, Constants.FLAG_SET_HOME_APP_6)
+                                        7 -> viewModel.selectedApp(app, Constants.FLAG_SET_HOME_APP_7)
+                                        8 -> viewModel.selectedApp(app, Constants.FLAG_SET_HOME_APP_8)
+                                    }
+                                    break
+                                }
                             }
                         }
                         showContextMenu = false
