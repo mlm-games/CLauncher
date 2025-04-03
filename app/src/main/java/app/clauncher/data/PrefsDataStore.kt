@@ -673,6 +673,55 @@ class PrefsDataStore(private val context: Context) {
         }
     }
 
+    suspend fun setAppUser1(value: String) {
+        context.dataStore.edit { preferences ->
+            preferences[APP_USER_1] = value
+        }
+    }
+
+    suspend fun setAppUser2(value: String) {
+        context.dataStore.edit { preferences ->
+            preferences[APP_USER_2] = value
+        }
+    }
+
+    suspend fun setAppUser3(value: String) {
+        context.dataStore.edit { preferences ->
+            preferences[APP_USER_3] = value
+        }
+    }
+
+    suspend fun setAppUser4(value: String) {
+        context.dataStore.edit { preferences ->
+            preferences[APP_USER_4] = value
+        }
+    }
+
+    suspend fun setAppUser5(value: String) {
+        context.dataStore.edit { preferences ->
+            preferences[APP_USER_5] = value
+        }
+    }
+
+    suspend fun setAppUser6(value: String) {
+        context.dataStore.edit { preferences ->
+            preferences[APP_USER_6] = value
+        }
+    }
+
+    suspend fun setAppUser7(value: String) {
+        context.dataStore.edit { preferences ->
+            preferences[APP_USER_7] = value
+        }
+    }
+
+    suspend fun setAppUser8(value: String) {
+        context.dataStore.edit { preferences ->
+            preferences[APP_USER_8] = value
+        }
+    }
+
+
     suspend fun setAppActivityClassName1(value: String?) {
         context.dataStore.edit { preferences ->
             if (value != null) {
@@ -752,4 +801,106 @@ class PrefsDataStore(private val context: Context) {
             }
         }
     }
+
+    suspend fun setAppNameSwipeLeft(value: String) {
+        context.dataStore.edit { preferences ->
+            preferences[APP_NAME_SWIPE_LEFT] = value
+        }
+    }
+
+    suspend fun setAppPackageSwipeLeft(value: String) {
+        context.dataStore.edit { preferences ->
+            preferences[APP_PACKAGE_SWIPE_LEFT] = value
+        }
+    }
+
+    suspend fun setAppUserSwipeLeft(value: String) {
+        context.dataStore.edit { preferences ->
+            preferences[APP_USER_SWIPE_LEFT] = value
+        }
+    }
+
+    suspend fun setAppNameSwipeRight(value: String) {
+        context.dataStore.edit { preferences ->
+            preferences[APP_NAME_SWIPE_RIGHT] = value
+        }
+    }
+
+    suspend fun setAppPackageSwipeRight(value: String) {
+        context.dataStore.edit { preferences ->
+            preferences[APP_PACKAGE_SWIPE_RIGHT] = value
+        }
+    }
+
+    suspend fun setAppUserSwipeRight(value: String) {
+        context.dataStore.edit { preferences ->
+            preferences[APP_USER_SWIPE_RIGHT] = value
+        }
+    }
+
+    suspend fun setAppActivityClassNameSwipeRight(value: String?) {
+        context.dataStore.edit { preferences ->
+            if (value != null) {
+                preferences[APP_ACTIVITY_CLASS_NAME_SWIPE_RIGHT] = value
+            } else {
+                preferences.remove(APP_ACTIVITY_CLASS_NAME_SWIPE_RIGHT)
+            }
+        }
+    }
+    suspend fun setAppActivityClassNameSwipeLeft(value: String?) {
+        context.dataStore.edit { preferences ->
+            if (value != null) {
+                preferences[APP_ACTIVITY_CLASS_NAME_SWIPE_LEFT] = value
+            } else {
+                preferences.remove(APP_ACTIVITY_CLASS_NAME_SWIPE_LEFT)
+            }
+        }
+    }
+
+
+    suspend fun setClockAppPackage(value: String) {
+        context.dataStore.edit { preferences ->
+            preferences[CLOCK_APP_PACKAGE] = value
+        }
+    }
+
+    suspend fun setClockAppUser(value: String) {
+        context.dataStore.edit { preferences ->
+            preferences[CLOCK_APP_USER] = value
+        }
+    }
+
+    suspend fun setClockAppClassName(value: String?) {
+        context.dataStore.edit { preferences ->
+            if (value != null) {
+                preferences[CLOCK_APP_CLASS_NAME] = value
+            } else {
+                preferences.remove(CLOCK_APP_CLASS_NAME)
+            }
+        }
+    }
+
+    suspend fun setCalendarAppPackage(value: String) {
+        context.dataStore.edit { preferences ->
+            preferences[CALENDAR_APP_PACKAGE] = value
+        }
+    }
+
+    suspend fun setCalendarAppUser(value: String) {
+        context.dataStore.edit { preferences ->
+            preferences[CALENDAR_APP_USER] = value
+        }
+    }
+
+    suspend fun setCalendarAppClassName(value: String?) {
+        context.dataStore.edit { preferences ->
+            if (value != null) {
+                preferences[CALENDAR_APP_CLASS_NAME] = value
+            } else {
+                preferences.remove(CALENDAR_APP_CLASS_NAME)
+            }
+        }
+    }
+
+
 }

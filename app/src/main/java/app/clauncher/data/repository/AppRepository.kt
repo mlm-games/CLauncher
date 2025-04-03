@@ -3,25 +3,22 @@ package app.clauncher.data.repository
 import android.content.Context
 import android.content.ComponentName
 import android.content.pm.LauncherApps
-import android.graphics.Bitmap
-import android.os.UserHandle
 import android.os.UserManager
 import app.clauncher.data.AppModel
-import app.clauncher.data.Prefs
+import app.clauncher.data.PrefsDataStore
 import app.clauncher.helper.IconCache
 import app.clauncher.helper.getAppsList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
-import java.text.Collator
 
 /**
  * Repository for app-related operations
  */
 class AppRepository(
     private val context: Context,
-    private val prefs: Prefs
+    private val prefs: PrefsDataStore
 ) {
     private val launcherApps =
         context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as
@@ -81,19 +78,19 @@ class AppRepository(
      *
      * @param app The app to toggle
      */
-    fun toggleAppHidden(app: AppModel) {
-        val hiddenApps = prefs.hiddenApps
-        val appKey = "${app.appPackage}/${app.user}"
-
-        if (hiddenApps.contains(appKey)) {
-            hiddenApps.remove(appKey)
-        } else {
-            hiddenApps.add(appKey)
-        }
-
-        prefs.hiddenApps = hiddenApps
-        prefs.hiddenAppsUpdated = true
-    }
+//TODO    fun toggleAppHidden(app: AppModel) {
+//        val hiddenApps = prefs.hiddenApps
+//        val appKey = "${app.appPackage}/${app.user}"
+//
+//        if (hiddenApps.contains(appKey)) {
+//            hiddenApps.remove(appKey)
+//        } else {
+//            hiddenApps.add(appKey)
+//        }
+//
+//        prefs.hiddenApps = hiddenApps
+//        prefs.hiddenAppsUpdated = true
+//    }
 
     /**
      * Launch an app

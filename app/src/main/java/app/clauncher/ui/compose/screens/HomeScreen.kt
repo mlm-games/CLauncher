@@ -1,7 +1,6 @@
 package app.clauncher.ui.compose.screens
 
 import android.view.Gravity
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
@@ -20,13 +19,11 @@ import app.clauncher.helper.expandNotificationDrawer
 import app.clauncher.helper.getUserHandleFromString
 import app.clauncher.helper.openAlarmApp
 import app.clauncher.helper.openCalendar
-import app.clauncher.helper.openCameraApp
 import app.clauncher.helper.openDialerApp
 import app.clauncher.helper.openSearch
 import app.clauncher.ui.compose.util.detectSwipeGestures
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.abs
 
 @Composable
 fun HomeScreen(
@@ -35,13 +32,18 @@ fun HomeScreen(
     onNavigateToSettings: () -> Unit
 ) {
     val context = LocalContext.current
-    val prefs = remember { app.clauncher.data.Prefs(context) }
+    // val prefs = remember { app.clauncher.data.Prefs(context) }
 
     // States
-    val homeAppsNum = prefs.homeAppsNum
-    val showDateTime = prefs.dateTimeVisibility != Constants.DateTime.OFF
-    val showTime = Constants.DateTime.isTimeVisible(prefs.dateTimeVisibility)
-    val showDate = Constants.DateTime.isDateVisible(prefs.dateTimeVisibility)
+    val homeAppsNum by viewModel.homeAppsNum.collectAsState() // Observe from ViewModel
+    val dateTimeVisibility by viewModel.dateTimeVisibility.collectAsState() // Observe from ViewModel
+
+    val showDateTime = dateTimeVisibility != Constants.DateTime.OFF
+    val showTime = Constants.DateTime.isTimeVisible(dateTimeVisibility)
+    val showDate = Constants.DateTime.isDateVisible(dateTimeVisibility)
+
+    // Home Alignment
+    val homeAlignment by viewModel.homeAlignment.collectAsState()
 
     // Format date
     val currentDate = remember { mutableStateOf(Date()) }
@@ -56,44 +58,19 @@ fun HomeScreen(
         }
     }
 
-//    LaunchedEffect(swipeState.currentValue) {
-//        when (swipeState.currentValue) {
-//            1 -> { // Swipe left
-//                if (prefs.swipeLeftEnabled) {
-//                    viewModel.launchSwipeLeftApp()
-//                }
-//            }
-//            2 -> { // Swipe right
-//                if (prefs.swipeRightEnabled) {
-//                    viewModel.launchSwipeRightApp()
-//                }
-//            }
-//        }
-//        swipeState.animateTo(0)
-//    }
-
-
     Box(
         modifier = Modifier
             .fillMaxSize()
             .detectSwipeGestures(
                 onSwipeUp = { onNavigateToAppDrawer() },
                 onSwipeDown = {
-                    if (prefs.swipeDownAction == Constants.SwipeDownAction.NOTIFICATIONS) {
-                        expandNotificationDrawer(context)
-                    } else {
-                        openSearch(context)
-                    }
+                    expandNotificationDrawer(context)
                 },
                 onSwipeLeft = {
-                    if (prefs.swipeLeftEnabled) {
-                        viewModel.launchSwipeLeftApp()
-                    }
+                    viewModel.launchSwipeLeftApp()
                 },
                 onSwipeRight = {
-                    if (prefs.swipeRightEnabled) {
-                        viewModel.launchSwipeRightApp()
-                    }
+                    viewModel.launchSwipeRightApp()
                 }
             )
             .pointerInput(Unit) {
@@ -106,7 +83,6 @@ fun HomeScreen(
                     },
                     onTap = {
                         // Check for messages
-                        viewModel.checkForMessages.call()
                     }
                 )
             }
@@ -115,7 +91,7 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .align(
-                    when (prefs.homeAlignment) {
+                    when (homeAlignment) {
                         Gravity.START -> Alignment.CenterStart
                         Gravity.END -> Alignment.CenterEnd
                         else -> Alignment.Center
@@ -123,18 +99,18 @@ fun HomeScreen(
                 )
                 .fillMaxWidth()
                 .padding(16.dp),
-            horizontalAlignment = when (prefs.homeAlignment) {
+            horizontalAlignment = when (homeAlignment) {
                 Gravity.START -> Alignment.Start
                 Gravity.END -> Alignment.End
                 else -> Alignment.CenterHorizontally
             },
-            verticalArrangement = if (prefs.homeBottomAlignment)
-                Arrangement.Bottom else Arrangement.Center
+            verticalArrangement = /*if (prefs.homeBottomAlignment) // TODO Bottom Alignment
+                Arrangement.Bottom else */ Arrangement.Center
         ) {
             // Date and time section
             if (showDateTime) {
                 Column(
-                    horizontalAlignment = when (prefs.homeAlignment) {
+                    horizontalAlignment = when (homeAlignment) {
                         Gravity.START -> Alignment.Start
                         Gravity.END -> Alignment.End
                         else -> Alignment.CenterHorizontally
@@ -149,14 +125,6 @@ fun HomeScreen(
                                 .pointerInput(Unit) {
                                     detectTapGestures(
                                         onTap = {
-//                                            val clockAppModel = AppModel(
-//                                                appLabel = "Clock",
-//                                                key = null,
-//                                                appPackage = prefs.clockAppPackage ?: "",
-//                                                activityClassName = prefs.clockAppClassName,
-//                                                user = getUserHandleFromString(context, prefs.clockAppUser ?: "")
-//                                            )
-//                                            viewModel.launchApp(clockAppModel)
                                             openAlarmApp(context)
                                         },
                                         onLongPress = { /* TODO Select clock app */ }
@@ -186,9 +154,8 @@ fun HomeScreen(
             // Home apps section
             HomeApps(
                 viewModel = viewModel,
-                prefs = prefs,
                 homeAppsNum = homeAppsNum,
-                alignment = prefs.homeAlignment
+                alignment = homeAlignment
             )
         }
     }
@@ -197,7 +164,6 @@ fun HomeScreen(
 @Composable
 private fun HomeApps(
     viewModel: MainViewModel,
-    prefs: app.clauncher.data.Prefs,
     homeAppsNum: Int,
     alignment: Int
 ) {
@@ -212,55 +178,12 @@ private fun HomeApps(
     ) {
         // Generate app items based on homeAppsNum
         for (i in 1..homeAppsNum) {
-            val appName = when (i) {
-                1 -> prefs.appName1
-                2 -> prefs.appName2
-                3 -> prefs.appName3
-                4 -> prefs.appName4
-                5 -> prefs.appName5
-                6 -> prefs.appName6
-                7 -> prefs.appName7
-                8 -> prefs.appName8
-                else -> ""
-            }
-
-            val appPackage = when (i) {
-                1 -> prefs.appPackage1
-                2 -> prefs.appPackage2
-                3 -> prefs.appPackage3
-                4 -> prefs.appPackage4
-                5 -> prefs.appPackage5
-                6 -> prefs.appPackage6
-                7 -> prefs.appPackage7
-                8 -> prefs.appPackage8
-                else -> ""
-            }
-
-            val appUser = when (i) {
-                1 -> prefs.appUser1
-                2 -> prefs.appUser2
-                3 -> prefs.appUser3
-                4 -> prefs.appUser4
-                5 -> prefs.appUser5
-                6 -> prefs.appUser6
-                7 -> prefs.appUser7
-                8 -> prefs.appUser8
-                else -> ""
-            }
-
-            if (!appName.isNullOrEmpty() && !appPackage.isNullOrEmpty()) {
+            val appModel = viewModel.getHomeAppModel(i)
+            if (appModel != null) {
                 HomeAppItem(
-                    appName = appName,
-                    appPackage = appPackage,
-                    appUser = appUser ?: "",
+                    appModel = appModel,
                     onClick = { viewModel.selectedApp(
-                        AppModel(
-                            appLabel = appName,
-                            key = null,
-                            appPackage = appPackage,
-                            activityClassName = prefs.getAppActivityClassName(i),
-                            user = getUserHandleFromString(context, appUser ?: "")
-                        ),
+                        appModel,
                         Constants.FLAG_LAUNCH_APP
                     ) },
                     onLongClick = { /* Navigate to app selection */ },
@@ -277,21 +200,19 @@ private fun HomeApps(
 
 @Composable
 private fun HomeAppItem(
-    appName: String,
-    appPackage: String,
-    appUser: String,
+    appModel: AppModel,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     textAlign: TextAlign
 ) {
     val context = LocalContext.current
-    val isInstalled = remember(appPackage, appUser) {
-        app.clauncher.helper.isPackageInstalled(context, appPackage, appUser)
+    val isInstalled = remember(appModel.appPackage, appModel.user) {
+        app.clauncher.helper.isPackageInstalled(context, appModel.appPackage, appModel.user.toString())
     }
 
-    if (isInstalled && appName.isNotEmpty()) {
+    if (isInstalled ) {
         Text(
-            text = appName,
+            text = appModel.appLabel,
             style = MaterialTheme.typography.titleLarge,
             textAlign = textAlign,
             modifier = Modifier

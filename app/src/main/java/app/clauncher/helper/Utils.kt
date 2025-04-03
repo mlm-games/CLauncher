@@ -17,7 +17,6 @@ import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Point
-import android.net.Uri
 import android.os.UserHandle
 import android.os.UserManager
 import android.provider.AlarmClock
@@ -48,6 +47,7 @@ import kotlin.math.pow
 import kotlin.math.sqrt
 import androidx.core.net.toUri
 import androidx.core.graphics.createBitmap
+import app.clauncher.data.PrefsDataStore
 
 fun Context.showToast(message: String?, duration: Int = Toast.LENGTH_SHORT) {
     if (message.isNullOrBlank()) return
@@ -60,7 +60,7 @@ fun Context.showToast(stringResource: Int, duration: Int = Toast.LENGTH_SHORT) {
 
 suspend fun getAppsList(
     context: Context,
-    prefs: Prefs,
+    prefs: PrefsDataStore,
     includeRegularApps: Boolean = true,
     includeHiddenApps: Boolean = false,
 ): MutableList<AppModel> {
@@ -78,9 +78,11 @@ suspend fun getAppsList(
             for (profile in userManager.userProfiles) {
                 for (app in launcherApps.getActivityList(null, profile)) {
 
-                    val appLabelShown = prefs.getAppRenameLabel(app.applicationInfo.packageName).ifBlank {
-                        app.label.toString() + if (profile != android.os.Process.myUserHandle()) " (Clone)" else ""
-                    }
+                    val appLabelShown = app.label.toString() + if (profile != android.os.Process.myUserHandle()) " (Clone)" else ""
+
+//                    val appLabelShown = oldPrefs.getAppRenameLabel(app.applicationInfo.packageName).ifBlank {
+//                        app.label.toString() + if (profile != android.os.Process.myUserHandle()) " (Clone)" else ""
+//                    }
                     val appModel = AppModel(
                         appLabelShown,
                         collator.getCollationKey(app.label.toString()),

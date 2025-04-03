@@ -1,17 +1,15 @@
 package app.clauncher
 
 import android.app.Application
-import android.content.Context
-import android.os.UserHandle
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.clauncher.data.AppModel
 import app.clauncher.data.Constants
-import app.clauncher.data.Prefs
+import app.clauncher.data.PrefsDataStore // Import PrefsDataStore
 import app.clauncher.data.repository.AppRepository
 import app.clauncher.helper.PermissionManager
-import app.clauncher.helper.SingleLiveEvent
 import app.clauncher.helper.getUserHandleFromString
+import app.clauncher.ui.events.EventsManager
 import app.clauncher.ui.state.AppDrawerScreenState
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
@@ -20,11 +18,13 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import app.clauncher.ui.state.HomeScreenState
 import app.clauncher.ui.state.SettingsScreenState
+import kotlinx.coroutines.runBlocking
 
 /**
  * MainViewModel is the primary ViewModel for CLauncher that manages
@@ -39,8 +39,8 @@ app state and user interactions.
  */
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val appContext by lazy { application.applicationContext }
-    private val prefs by lazy { Prefs(appContext) }
-    private val appRepository by lazy { AppRepository(appContext, prefs) }
+    private val prefsDataStore by lazy { PrefsDataStore(appContext) }
+    private val appRepository by lazy { AppRepository(appContext, prefsDataStore) }
     private val permissionManager by lazy { PermissionManager(appContext) }
 
     private val _homeScreenState = MutableStateFlow(HomeScreenState())
@@ -54,13 +54,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
 
     // State flows for reactive UI updates
-    private val _homeAppsNum = MutableStateFlow(prefs.homeAppsNum)
+    private val _homeAppsNum = MutableStateFlow(0) // Default value, will be updated from DataStore
     val homeAppsNum: StateFlow<Int> = _homeAppsNum
 
-    private val _dateTimeVisibility = MutableStateFlow(prefs.dateTimeVisibility)
+    private val _dateTimeVisibility = MutableStateFlow(0) // Default value, will be updated from DataStore
     val dateTimeVisibility: StateFlow<Int> = _dateTimeVisibility
 
-    private val _homeAlignment = MutableStateFlow(prefs.homeAlignment)
+    private val _homeAlignment = MutableStateFlow(0) // Default value, will be updated from DataStore
     val homeAlignment: StateFlow<Int> = _homeAlignment
 
     // Use repository's StateFlow
@@ -80,10 +80,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var isLastPage = false
     private var searchJob: kotlinx.coroutines.Job? = null
 
-    // Single event triggers
-    val showDialog = SingleLiveEvent<String>()
-    val checkForMessages = SingleLiveEvent<Unit?>()
-    val resetLauncherLiveData = SingleLiveEvent<Unit?>()
+    // Events system
+    private val _eventsManager = EventsManager()
+    val events = _eventsManager.events
+
+    // Single event triggers REMOVE
+    // val showDialog = SingleLiveEvent<String>() REMOVE
+    // val checkForMessages = SingleLiveEvent<Unit?>() REMOVE
+    // val resetLauncherLiveData = SingleLiveEvent<Unit?>() REMOVE
     val launcherResetFailed = MutableStateFlow(false)
 
     // View state for error handling
@@ -93,6 +97,30 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, exception ->
         _viewState.value = ViewState.Error(exception.message ?: "An error occurred")
+    }
+
+    init {
+        collectPreferences()
+    }
+
+    private fun collectPreferences() {
+        viewModelScope.launch {
+            launch {
+                prefsDataStore.homeAppsNum.collectLatest {
+                    _homeAppsNum.value = it
+                }
+            }
+            launch {
+                prefsDataStore.dateTimeVisibility.collectLatest {
+                    _dateTimeVisibility.value = it
+                }
+            }
+            launch {
+                prefsDataStore.homeAlignment.collectLatest {
+                    _homeAlignment.value = it
+                }
+            }
+        }
     }
 
     /**
@@ -127,7 +155,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun refreshHome(appCountUpdated: Boolean) {
         if (appCountUpdated) {
-            _homeAppsNum.value = prefs.homeAppsNum
+            viewModelScope.launch {
+                prefsDataStore.setHomeAppsNum(_homeAppsNum.value)
+                _homeAppsNum.value = _homeAppsNum.value
+            }
         }
     }
 
@@ -135,7 +166,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * Toggle date and time visibility
      */
     fun toggleDateTime() {
-        _dateTimeVisibility.value = prefs.dateTimeVisibility
+        viewModelScope.launch {
+            prefsDataStore.setDateTimeVisibility(_dateTimeVisibility.value)
+            _dateTimeVisibility.value = _dateTimeVisibility.value
+        }
     }
 
     /**
@@ -144,8 +178,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * @param show Whether to show apps
      */
     fun updateShowApps(show: Boolean) {
-        prefs.toggleAppVisibility = show
-        loadApps() // Reload apps with new visibility
+        // prefs.toggleAppVisibility = show REMOVE
+        // loadApps() // Reload apps with new visibility
     }
 
     /**
@@ -154,20 +188,25 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * @param gravity The alignment gravity (START, CENTER, END)
      */
     fun updateHomeAlignment(gravity: Int) {
-        prefs.homeAlignment = gravity
-        _homeAlignment.value = gravity
+        viewModelScope.launch {
+            prefsDataStore.setHomeAlignment(gravity)
+            _homeAlignment.value = gravity
+        }
     }
 
-    fun isAppHidden(app: AppModel): Boolean {
-        val appKey = "${app.appPackage}/${app.user}"
-        return prefs.hiddenApps.contains(appKey)
-    }
+//TODO: Fix later
+//    fun isAppHidden(app: AppModel): Boolean {
+//        val appKey = "${app.appPackage}/${app.user}"
+//        return runBlocking { prefsDataStore.hiddenApps.collectLatest {
+//            it.contains(appKey)
+//        } }
+//    }
 
     /**
      * Handle selected app action based on the flag
      *
      * @param appModel The selected app
-     * @param flag The action flag (launch, hide, set as home app, etc.)
+     * @param flag The action flag (launch, hide, set as home app, set as clock app, etc.)
      */
     fun selectedApp(appModel: AppModel, flag: Int) {
         when (flag) {
@@ -175,84 +214,108 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 launchApp(appModel)
             }
             Constants.FLAG_SET_HOME_APP_1 -> {
-                prefs.appName1 = appModel.appLabel
-                prefs.appPackage1 = appModel.appPackage
-                prefs.appUser1 = appModel.user.toString()
-                prefs.appActivityClassName1 = appModel.activityClassName
-                refreshHome(false)
+                viewModelScope.launch {
+                    prefsDataStore.setAppName1(appModel.appLabel)
+                    prefsDataStore.setAppPackage1(appModel.appPackage)
+                    prefsDataStore.setAppUser1(appModel.user.toString())
+                    prefsDataStore.setAppActivityClassName1(appModel.activityClassName)
+                    refreshHome(false)
+                }
             }
             Constants.FLAG_SET_HOME_APP_2 -> {
-                prefs.appName2 = appModel.appLabel
-                prefs.appPackage2 = appModel.appPackage
-                prefs.appUser2 = appModel.user.toString()
-                prefs.appActivityClassName2 = appModel.activityClassName
-                refreshHome(false)
+                viewModelScope.launch {
+                    prefsDataStore.setAppName2(appModel.appLabel)
+                    prefsDataStore.setAppPackage2(appModel.appPackage)
+                    prefsDataStore.setAppUser2(appModel.user.toString())
+                    prefsDataStore.setAppActivityClassName2(appModel.activityClassName)
+                    refreshHome(false)
+                }
             }
             Constants.FLAG_SET_HOME_APP_3 -> {
-                prefs.appName3 = appModel.appLabel
-                prefs.appPackage3 = appModel.appPackage
-                prefs.appUser3 = appModel.user.toString()
-                prefs.appActivityClassName3 = appModel.activityClassName
-                refreshHome(false)
+                viewModelScope.launch {
+                    prefsDataStore.setAppName3(appModel.appLabel)
+                    prefsDataStore.setAppPackage3(appModel.appPackage)
+                    prefsDataStore.setAppUser3(appModel.user.toString())
+                    prefsDataStore.setAppActivityClassName3(appModel.activityClassName)
+                    refreshHome(false)
+                }
             }
             Constants.FLAG_SET_HOME_APP_4 -> {
-                prefs.appName4 = appModel.appLabel
-                prefs.appPackage4 = appModel.appPackage
-                prefs.appUser4 = appModel.user.toString()
-                prefs.appActivityClassName4 = appModel.activityClassName
-                refreshHome(false)
+                viewModelScope.launch {
+                    prefsDataStore.setAppName4(appModel.appLabel)
+                    prefsDataStore.setAppPackage4(appModel.appPackage)
+                    prefsDataStore.setAppUser4(appModel.user.toString())
+                    prefsDataStore.setAppActivityClassName4(appModel.activityClassName)
+                    refreshHome(false)
+                }
             }
             Constants.FLAG_SET_HOME_APP_5 -> {
-                prefs.appName5 = appModel.appLabel
-                prefs.appPackage5 = appModel.appPackage
-                prefs.appUser5 = appModel.user.toString()
-                prefs.appActivityClassName5 = appModel.activityClassName
-                refreshHome(false)
+                viewModelScope.launch {
+                    prefsDataStore.setAppName5(appModel.appLabel)
+                    prefsDataStore.setAppPackage5(appModel.appPackage)
+                    prefsDataStore.setAppUser5(appModel.user.toString())
+                    prefsDataStore.setAppActivityClassName5(appModel.activityClassName)
+                    refreshHome(false)
+                }
             }
             Constants.FLAG_SET_HOME_APP_6 -> {
-                prefs.appName6 = appModel.appLabel
-                prefs.appPackage6 = appModel.appPackage
-                prefs.appUser6 = appModel.user.toString()
-                prefs.appActivityClassName6 = appModel.activityClassName
-                refreshHome(false)
+                viewModelScope.launch {
+                    prefsDataStore.setAppName6(appModel.appLabel)
+                    prefsDataStore.setAppPackage6(appModel.appPackage)
+                    prefsDataStore.setAppUser6(appModel.user.toString())
+                    prefsDataStore.setAppActivityClassName6(appModel.activityClassName)
+                    refreshHome(false)
+                }
             }
             Constants.FLAG_SET_HOME_APP_7 -> {
-                prefs.appName7 = appModel.appLabel
-                prefs.appPackage7 = appModel.appPackage
-                prefs.appUser7 = appModel.user.toString()
-                prefs.appActivityClassName7 = appModel.activityClassName
-                refreshHome(false)
+                viewModelScope.launch {
+                    prefsDataStore.setAppName7(appModel.appLabel)
+                    prefsDataStore.setAppPackage7(appModel.appPackage)
+                    prefsDataStore.setAppUser7(appModel.user.toString())
+                    prefsDataStore.setAppActivityClassName7(appModel.activityClassName)
+                    refreshHome(false)
+                }
             }
             Constants.FLAG_SET_HOME_APP_8 -> {
-                prefs.appName8 = appModel.appLabel
-                prefs.appPackage8 = appModel.appPackage
-                prefs.appUser8 = appModel.user.toString()
-                prefs.appActivityClassName8 = appModel.activityClassName
-                refreshHome(false)
+                viewModelScope.launch {
+                    prefsDataStore.setAppName8(appModel.appLabel)
+                    prefsDataStore.setAppPackage8(appModel.appPackage)
+                    prefsDataStore.setAppUser8(appModel.user.toString())
+                    prefsDataStore.setAppActivityClassName8(appModel.activityClassName)
+                    refreshHome(false)
+                }
             }
             Constants.FLAG_SET_SWIPE_LEFT_APP -> {
-                prefs.appNameSwipeLeft = appModel.appLabel
-                prefs.appPackageSwipeLeft = appModel.appPackage
-                prefs.appUserSwipeLeft = appModel.user.toString()
-                prefs.appActivityClassNameSwipeLeft = appModel.activityClassName
-                updateSwipeApps()
+                viewModelScope.launch {
+                    prefsDataStore.setAppNameSwipeLeft(appModel.appLabel)
+                    prefsDataStore.setAppPackageSwipeLeft(appModel.appPackage)
+                    prefsDataStore.setAppUserSwipeLeft(appModel.user.toString())
+                    prefsDataStore.setAppActivityClassNameSwipeLeft(appModel.activityClassName)
+                    updateSwipeApps()
+                }
             }
             Constants.FLAG_SET_SWIPE_RIGHT_APP -> {
-                prefs.appNameSwipeRight = appModel.appLabel
-                prefs.appPackageSwipeRight = appModel.appPackage
-                prefs.appUserSwipeRight = appModel.user.toString()
-                prefs.appActivityClassNameRight = appModel.activityClassName
-                updateSwipeApps()
+                viewModelScope.launch {
+                    prefsDataStore.setAppNameSwipeRight(appModel.appLabel)
+                    prefsDataStore.setAppPackageSwipeRight(appModel.appPackage)
+                    prefsDataStore.setAppUserSwipeRight(appModel.user.toString())
+                    prefsDataStore.setAppActivityClassNameSwipeRight(appModel.activityClassName)
+                    updateSwipeApps()
+                }
             }
             Constants.FLAG_SET_CLOCK_APP -> {
-                prefs.clockAppPackage = appModel.appPackage
-                prefs.clockAppUser = appModel.user.toString()
-                prefs.clockAppClassName = appModel.activityClassName
+                viewModelScope.launch {
+                    prefsDataStore.setClockAppPackage(appModel.appPackage)
+                    prefsDataStore.setClockAppUser(appModel.user.toString())
+                    prefsDataStore.setClockAppClassName(appModel.activityClassName)
+                }
             }
             Constants.FLAG_SET_CALENDAR_APP -> {
-                prefs.calendarAppPackage = appModel.appPackage
-                prefs.calendarAppUser = appModel.user.toString()
-                prefs.calendarAppClassName = appModel.activityClassName
+                viewModelScope.launch {
+                    prefsDataStore.setCalendarAppPackage(appModel.appPackage)
+                    prefsDataStore.setCalendarAppUser(appModel.user.toString())
+                    prefsDataStore.setCalendarAppClassName(appModel.activityClassName)
+                }
             }
         }
     }
@@ -286,46 +349,51 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
 
     fun launchSwipeLeftApp() {
-        if (prefs.appPackageSwipeLeft?.isNotEmpty() == true) {
-            val app = prefs.appNameSwipeLeft?.let {
-                prefs.appPackageSwipeLeft?.let { packageName ->
-                    prefs.appUserSwipeLeft?.let { userString ->
-                        getUserHandleFromString(appContext, userString)
-                    }?.let { userHandle ->
-                        AppModel(
-                            appLabel = it,
-                            key = null,
-                            appPackage = packageName,
-                            activityClassName =
-                                prefs.appActivityClassNameSwipeLeft,
-                            user = userHandle
-                        )
+        viewModelScope.launch {
+            prefsDataStore.appPackageSwipeLeft.collectLatest {
+                if (it.isNotEmpty()) {
+                    prefsDataStore.appNameSwipeLeft.collectLatest { appName ->
+                        prefsDataStore.appPackageSwipeLeft.collectLatest { packageName ->
+                            prefsDataStore.appUserSwipeLeft.collectLatest { userString ->
+                                val userHandle = getUserHandleFromString(appContext, userString)
+                                val app = AppModel(
+                                    appLabel = appName,
+                                    key = null,
+                                    appPackage = packageName,
+                                    activityClassName = runBlocking { prefsDataStore.appActivityClassNameSwipeLeft.collectLatest { it } }.toString(),
+                                    user = userHandle
+                                )
+                                launchApp(app)
+                            }
+                        }
                     }
                 }
             }
-            app?.let { launchApp(it) }
         }
     }
 
 
     fun launchSwipeRightApp() {
-        if (prefs.appPackageSwipeRight?.isNotEmpty() == true) {
-            val app = prefs.appNameSwipeRight?.let {
-                prefs.appPackageSwipeRight?.let { packageName ->
-                    prefs.appUserSwipeRight?.let { userString ->
-                        getUserHandleFromString(appContext, userString)
-                    }?.let { userHandle ->
-                        AppModel(
-                            appLabel = it,
-                            key = null,
-                            appPackage = packageName,
-                            activityClassName = prefs.appActivityClassNameRight,
-                            user = userHandle
-                        )
+        viewModelScope.launch {
+            prefsDataStore.appPackageSwipeRight.collectLatest {
+                if (it.isNotEmpty()) {
+                    prefsDataStore.appNameSwipeRight.collectLatest { appName ->
+                        prefsDataStore.appPackageSwipeRight.collectLatest { packageName ->
+                            prefsDataStore.appUserSwipeRight.collectLatest { userString ->
+                                val userHandle = getUserHandleFromString(appContext, userString)
+                                val app = AppModel(
+                                    appLabel = appName,
+                                    key = null,
+                                    appPackage = packageName,
+                                    activityClassName = runBlocking { prefsDataStore.appActivityClassNameSwipeRight.collectLatest { it } }.toString(),
+                                    user = userHandle
+                                )
+                                launchApp(app)
+                            }
+                        }
                     }
                 }
             }
-            app?.let { launchApp(it) }
         }
     }
 
@@ -369,7 +437,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * @param app The app to toggle
      */
     fun toggleAppHidden(app: AppModel) {
-        appRepository.toggleAppHidden(app)
+// TODO       appRepository.toggleAppHidden(app)
         // Refresh lists after toggling
         loadApps()
         getHiddenApps()
@@ -458,60 +526,80 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * @return The AppModel or null if not set
      */
     fun getHomeAppModel(position: Int): AppModel? {
-        val appName = when (position) {
-            1 -> prefs.appName1
-            2 -> prefs.appName2
-            3 -> prefs.appName3
-            4 -> prefs.appName4
-            5 -> prefs.appName5
-            6 -> prefs.appName6
-            7 -> prefs.appName7
-            8 -> prefs.appName8
-            else -> null
-        } ?: return null
+        var appName : String? = null
+        var appPackage : String? = null
+        var activityClassName : String? = null
+        var userString : String? = null
 
-        val appPackage = when (position) {
-            1 -> prefs.appPackage1
-            2 -> prefs.appPackage2
-            3 -> prefs.appPackage3
-            4 -> prefs.appPackage4
-            5 -> prefs.appPackage5
-            6 -> prefs.appPackage6
-            7 -> prefs.appPackage7
-            8 -> prefs.appPackage8
-            else -> null
-        } ?: return null
-
-        val activityClassName = when (position) {
-            1 -> prefs.appActivityClassName1
-            2 -> prefs.appActivityClassName2
-            3 -> prefs.appActivityClassName3
-            4 -> prefs.appActivityClassName4
-            5 -> prefs.appActivityClassName5
-            6 -> prefs.appActivityClassName6
-            7 -> prefs.appActivityClassName7
-            8 -> prefs.appActivityClassName8
-            else -> null
+        runBlocking {
+            when (position) {
+                1 -> {
+                    prefsDataStore.appName1.collectLatest { appName = it }
+                    prefsDataStore.appPackage1.collectLatest { appPackage = it }
+                    prefsDataStore.appActivityClassName1.collectLatest { activityClassName = it }
+                    prefsDataStore.appUser1.collectLatest { userString = it }
+                }
+                2 -> {
+                    prefsDataStore.appName2.collectLatest { appName = it }
+                    prefsDataStore.appPackage2.collectLatest { appPackage = it }
+                    prefsDataStore.appActivityClassName2.collectLatest { activityClassName = it }
+                    prefsDataStore.appUser2.collectLatest { userString = it }
+                }
+                3 -> {
+                    prefsDataStore.appName3.collectLatest { appName = it }
+                    prefsDataStore.appPackage3.collectLatest { appPackage = it }
+                    prefsDataStore.appActivityClassName3.collectLatest { activityClassName = it }
+                    prefsDataStore.appUser3.collectLatest { userString = it }
+                }
+                4 -> {
+                    prefsDataStore.appName4.collectLatest { appName = it }
+                    prefsDataStore.appPackage4.collectLatest { appPackage = it }
+                    prefsDataStore.appActivityClassName4.collectLatest { activityClassName = it }
+                    prefsDataStore.appUser4.collectLatest { userString = it }
+                }
+                5 -> {
+                    prefsDataStore.appName5.collectLatest { appName = it }
+                    prefsDataStore.appPackage5.collectLatest { appPackage = it }
+                    prefsDataStore.appActivityClassName5.collectLatest { activityClassName = it }
+                    prefsDataStore.appUser5.collectLatest { userString = it }
+                }
+                6 -> {
+                    prefsDataStore.appName6.collectLatest { appName = it }
+                    prefsDataStore.appPackage6.collectLatest { appPackage = it }
+                    prefsDataStore.appActivityClassName6.collectLatest { activityClassName = it }
+                    prefsDataStore.appUser6.collectLatest { userString = it }
+                }
+                7 -> {
+                    prefsDataStore.appName7.collectLatest { appName = it }
+                    prefsDataStore.appPackage7.collectLatest { appPackage = it }
+                    prefsDataStore.appActivityClassName7.collectLatest { activityClassName = it }
+                    prefsDataStore.appUser7.collectLatest { userString = it }
+                }
+                8 -> {
+                    prefsDataStore.appName8.collectLatest { appName = it }
+                    prefsDataStore.appPackage8.collectLatest { appPackage = it }
+                    prefsDataStore.appActivityClassName8.collectLatest { activityClassName = it }
+                    prefsDataStore.appUser8.collectLatest { userString = it }
+                }
+                else -> {
+                    appName = null
+                    appPackage = null
+                    activityClassName = null
+                    userString = null
+                }
+            }
         }
 
-        val userString = when (position) {
-            1 -> prefs.appUser1
-            2 -> prefs.appUser2
-            3 -> prefs.appUser3
-            4 -> prefs.appUser4
-            5 -> prefs.appUser5
-            6 -> prefs.appUser6
-            7 -> prefs.appUser7
-            8 -> prefs.appUser8
-            else -> null
-        } ?: return null
+        appName ?: return null
+        appPackage ?: return null
+        userString ?: return null
 
         val userHandle = getUserHandleFromString(appContext, userString)
 
         return AppModel(
-            appLabel = appName,
+            appLabel = appName!!,
             key = null,
-            appPackage = appPackage,
+            appPackage = appPackage!!,
             activityClassName = activityClassName,
             user = userHandle
         )
@@ -530,17 +618,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * Open the configured clock app
      */
     fun openClockApp() {
-        if (prefs.clockAppPackage?.isNotEmpty() == true) {
-            val userHandle = getUserHandleFromString(appContext,
-                prefs.clockAppUser ?: "")
-            val app = AppModel(
-                appLabel = "Clock",
-                key = null,
-                appPackage = prefs.clockAppPackage ?: "",
-                activityClassName = prefs.clockAppClassName,
-                user = userHandle
-            )
-            launchApp(app)
+        viewModelScope.launch {
+            prefsDataStore.clockAppPackage.collectLatest { clockAppPackage ->
+                if (clockAppPackage.isNotEmpty()) {
+                    prefsDataStore.clockAppUser.collectLatest { clockAppUser ->
+                        val userHandle = getUserHandleFromString(appContext, clockAppUser)
+                        val app = AppModel(
+                            appLabel = "Clock",
+                            key = null,
+                            appPackage = clockAppPackage,
+                            activityClassName = runBlocking { prefsDataStore.clockAppClassName.collectLatest { it } }.toString(),
+                            user = userHandle
+                        )
+                        launchApp(app)
+                    }
+                }
+            }
         }
     }
 
@@ -548,17 +641,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * Open the configured calendar app
      */
     fun openCalendarApp() {
-        if (prefs.calendarAppPackage?.isNotEmpty() == true) {
-            val userHandle = getUserHandleFromString(appContext,
-                prefs.calendarAppUser ?: "")
-            val app = AppModel(
-                appLabel = "Calendar",
-                key = null,
-                appPackage = prefs.calendarAppPackage ?: "",
-                activityClassName = prefs.calendarAppClassName,
-                user = userHandle
-            )
-            launchApp(app)
+        viewModelScope.launch {
+            prefsDataStore.calendarAppPackage.collectLatest { calendarAppPackage ->
+                if (calendarAppPackage.isNotEmpty()) {
+                    prefsDataStore.calendarAppUser.collectLatest { calendarAppUser ->
+                        val userHandle = getUserHandleFromString(appContext, calendarAppUser)
+                        val app = AppModel(
+                            appLabel = "Calendar",
+                            key = null,
+                            appPackage = calendarAppPackage,
+                            activityClassName = runBlocking { prefsDataStore.calendarAppClassName.collectLatest { it } }.toString(),
+                            user = userHandle
+                        )
+                        launchApp(app)
+                    }
+                }
+            }
         }
     }
 
@@ -571,14 +669,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun handleAppEvent(packageName: String, isRemoved: Boolean) {
         viewModelScope.launch {
             // Check if this was a home app
-            val needsRefresh = arrayOf(
+            val needsRefresh = false // TODO Update logic
+            /*val needsRefresh = arrayOf(
                 prefs.appPackage1, prefs.appPackage2,
                 prefs.appPackage3, prefs.appPackage4,
                 prefs.appPackage5, prefs.appPackage6,
                 prefs.appPackage7, prefs.appPackage8,
                 prefs.appPackageSwipeLeft, prefs.appPackageSwipeRight,
                 prefs.clockAppPackage, prefs.calendarAppPackage
-            ).any { it == packageName }
+            ).any { it == packageName }*/
 
             // Reload app list
             loadApps()

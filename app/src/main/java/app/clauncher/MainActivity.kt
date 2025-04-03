@@ -79,13 +79,13 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun initObservers() {
-        viewModel.resetLauncherLiveData.observe(this) {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q)
-                //TODO: show toast saying to set it manually.
-                resetLauncherViaFakeActivity()
-            else
-                showLauncherSelector(Constants.REQUEST_CODE_LAUNCHER_SELECTOR)
-        }
+//        viewModel.resetLauncherLiveData.observe(this) {
+//            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q)
+//                //TODO: show toast saying to set it manually.
+//                resetLauncherViaFakeActivity()
+//            else
+//                showLauncherSelector(Constants.REQUEST_CODE_LAUNCHER_SELECTOR)
+//        }
 
         lifecycleScope.launch {
             // Only collect when the lifecycle is at least STARTED

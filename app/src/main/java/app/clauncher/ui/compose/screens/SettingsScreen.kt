@@ -310,7 +310,7 @@ fun SettingsScreen(
                         title = "Set as Default Launcher",
                         subtitle = if (isClauncherDefault(context)) "CLauncher is default" else "CLauncher is not default",
                         onClick = {
-                            viewModel.resetLauncherLiveData.call()
+//                            viewModel.resetLauncherLiveData.call()
                         }
                     )
 
@@ -336,7 +336,7 @@ fun SettingsScreen(
                         title = "About CLauncher",
                         subtitle = "Version ${context.packageManager.getPackageInfo(context.packageName, 0).versionName}",
                         onClick = {
-                            viewModel.showDialog.value = Constants.Dialog.ABOUT
+//                            viewModel.showDialog.value = Constants.Dialog.ABOUT
                         }
                     )
                 }
