@@ -1,7 +1,8 @@
 package app.clauncher.data
 
-import android.graphics.Bitmap
 import android.os.UserHandle
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.runtime.Immutable
 import java.text.CollationKey
 
@@ -13,7 +14,7 @@ data class AppModel(
     val activityClassName: String?,
     val isNew: Boolean = false,
     val user: UserHandle,
-    val appIcon: Bitmap? = null,
+    val appIcon: ImageBitmap? = null,
     val isHidden: Boolean = false
 ) : Comparable<AppModel> {
     override fun compareTo(other: AppModel): Int = when {

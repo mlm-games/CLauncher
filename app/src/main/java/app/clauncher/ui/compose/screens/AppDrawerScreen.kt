@@ -147,7 +147,7 @@ fun AppDrawerScreen(
                     ) {
                         if (prefs.toggleAppVisibility && app.appIcon != null) {
                             androidx.compose.foundation.Image(
-                                bitmap = app.appIcon.asImageBitmap(),
+                                bitmap = app.appIcon,
                                 contentDescription = null,
                                 modifier = Modifier
                                     .size(40.dp)

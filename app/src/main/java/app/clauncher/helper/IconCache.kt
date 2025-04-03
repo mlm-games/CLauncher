@@ -8,8 +8,11 @@ import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.os.UserHandle
 import androidx.collection.LruCache
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import androidx.core.graphics.createBitmap
 
 /**
  * Cache for app icons to improve performance
@@ -29,11 +32,11 @@ class IconCache(private val context: Context) {
      * @return The app icon bitmap or null if not available
      */
     suspend fun getIcon(packageName: String, className: String?, user:
-    UserHandle): Bitmap? {
+    UserHandle): ImageBitmap? {
         val cacheKey = "$packageName|$className|${user.hashCode()}"
 
         // Check cache first
-        iconCache[cacheKey]?.let { return it }
+        iconCache[cacheKey]?.let { return it.asImageBitmap() }
 
         // Load icon if not in cache
         return withContext(Dispatchers.IO) {
@@ -49,7 +52,7 @@ class IconCache(private val context: Context) {
 
                     // Cache the bitmap
                     bitmap?.let { iconCache.put(cacheKey, it) }
-                    bitmap
+                    bitmap?.asImageBitmap()
                 }
             } catch (e: Exception) {
                 null
@@ -68,8 +71,7 @@ class IconCache(private val context: Context) {
             val width = drawable.intrinsicWidth.takeIf { it > 0 } ?: 48
             val height = drawable.intrinsicHeight.takeIf { it > 0 } ?: 48
 
-            val bitmap = Bitmap.createBitmap(width, height,
-                Bitmap.Config.ARGB_8888)
+            val bitmap = createBitmap(width, height)
             val canvas = Canvas(bitmap)
 
             drawable.setBounds(0, 0, canvas.width, canvas.height)

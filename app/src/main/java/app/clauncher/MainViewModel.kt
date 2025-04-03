@@ -12,6 +12,7 @@ import app.clauncher.data.repository.AppRepository
 import app.clauncher.helper.PermissionManager
 import app.clauncher.helper.SingleLiveEvent
 import app.clauncher.helper.getUserHandleFromString
+import app.clauncher.ui.state.AppDrawerScreenState
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -22,6 +23,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
+import app.clauncher.ui.state.HomeScreenState
+import app.clauncher.ui.state.SettingsScreenState
 
 /**
  * MainViewModel is the primary ViewModel for CLauncher that manages
@@ -39,6 +42,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val prefs by lazy { Prefs(appContext) }
     private val appRepository by lazy { AppRepository(appContext, prefs) }
     private val permissionManager by lazy { PermissionManager(appContext) }
+
+    private val _homeScreenState = MutableStateFlow(HomeScreenState())
+    val homeScreenState: StateFlow<HomeScreenState> = _homeScreenState
+
+    private val _appDrawerScreenState = MutableStateFlow(AppDrawerScreenState())
+    val appDrawerScreenState: StateFlow<AppDrawerScreenState> = _appDrawerScreenState
+
+    private val _settingsScreenState = MutableStateFlow(SettingsScreenState())
+    val settingsScreenState: StateFlow<SettingsScreenState> = _settingsScreenState
+
 
     // State flows for reactive UI updates
     private val _homeAppsNum = MutableStateFlow(prefs.homeAppsNum)

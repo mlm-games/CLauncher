@@ -118,6 +118,8 @@ dependencies {
     // Work Manager
     implementation libs.work.runtime.ktx
 
+    implementation("androidx.datastore:datastore-preferences:1.1.4")
+
     //Material dependency
     implementation libs.material
     implementation libs.material3.android

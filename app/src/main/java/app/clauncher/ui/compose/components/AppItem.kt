@@ -9,7 +9,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
 import app.clauncher.data.AppModel
 
@@ -34,7 +33,7 @@ fun AppItem(
         // I think this is not needed rn
         app.appIcon?.let { icon ->
             Image(
-                bitmap = icon.asImageBitmap(),
+                bitmap = icon,
                 contentDescription = null,
                 modifier = Modifier
                     .size(40.dp)
