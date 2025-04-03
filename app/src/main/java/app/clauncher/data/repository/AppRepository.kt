@@ -11,6 +11,7 @@ import app.clauncher.helper.getAppsList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 /**
@@ -85,18 +86,39 @@ class AppRepository(
      * @param app The app to toggle
      */
     suspend fun toggleAppHidden(app: AppModel) {
-        val hiddenApps = prefs.hiddenApps
-        val appKey = "${app.appPackage}/${app.user}"
+        try {
+            val currentHiddenApps = safeGetHiddenApps().toMutableSet()
+            val appKey = "${app.appPackage}/${app.user}"
 
-//TODO        if (hiddenApps.contains(appKey)) {
-//            hiddenApps.remove(appKey)
-//        } else {
-//            hiddenApps.add(appKey)
-//        }
+            if (currentHiddenApps.contains(appKey)) {
+                currentHiddenApps.remove(appKey)
+            } else {
+                currentHiddenApps.add(appKey)
+            }
 
-//        prefs.setHiddenApps(hiddenApps)
-        prefs.setHiddenAppsUpdated(true)
+            prefs.setHiddenApps(currentHiddenApps)
+            prefs.setHiddenAppsUpdated(true)
+
+            // Refresh lists
+            loadApps()
+            loadHiddenApps()
+        } catch (e: Exception) {
+            println("Error toggling hidden app state: ${e.message}")
+            e.printStackTrace()
+        }
     }
+
+    private suspend fun safeGetHiddenApps(): Set<String> {
+        return try {
+            prefs.hiddenApps.first()
+        } catch (e: Exception) {
+            println("Error accessing hidden apps: ${e.message}")
+            e.printStackTrace()
+            emptySet()
+        }
+    }
+
+// Then use this function in loadApps, loadHiddenApps, etc.
 
     /**
      * Launch an app
