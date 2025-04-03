@@ -65,12 +65,6 @@ fun Context.resetDefaultLauncher() {
 //    }
 }
 
-fun Context.resetLauncherViaFakeActivity() {
-    resetDefaultLauncher()
-    if (getDefaultLauncherPackage(this).contains("."))
-        startActivity(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
-}
-
 fun Context.openSearch(query: String? = null) {
     val intent = Intent(Intent.ACTION_WEB_SEARCH)
     intent.putExtra(SearchManager.QUERY, query ?: "")

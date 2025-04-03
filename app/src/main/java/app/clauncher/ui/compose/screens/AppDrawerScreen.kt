@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.style.TextOverflow
@@ -27,18 +28,26 @@ import androidx.core.net.toUri
 import app.clauncher.MainViewModel
 import app.clauncher.data.AppModel
 import app.clauncher.data.Constants
+import app.clauncher.data.PrefsDataStore
 import app.clauncher.helper.openSearch
 import app.clauncher.ui.compose.AppDrawerSearch
+import app.clauncher.ui.compose.BackHandler
+import app.clauncher.ui.compose.util.detectSwipeGestures
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AppDrawerScreen(
     viewModel: MainViewModel,
-    onAppClick: (AppModel) -> Unit
+    onAppClick: (AppModel) -> Unit,
+    selectionMode: Boolean = false,
+    selectionTitle: String = "",
+    onSwipeDown: () -> Unit,
 ) {
+    BackHandler(onBack = onSwipeDown)
+
     val context = LocalContext.current
     val uiState by viewModel.appDrawerState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
@@ -47,12 +56,10 @@ fun AppDrawerScreen(
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    // Collect preferences
     val preferences by viewModel.prefsDataStore.preferences.collectAsState(initial = null)
-    val autoShowKeyboard = preferences?.autoShowKeyboard ?: true
-    val showAppNames = preferences?.showAppNames ?: true
+    val autoShowKeyboard = preferences?.autoShowKeyboard != false
+    val showAppNames = preferences?.showAppNames != false
 
-    // Selected app for context menu
     var selectedApp by remember { mutableStateOf<AppModel?>(null) }
     var showContextMenu by remember { mutableStateOf(false) }
 
@@ -75,7 +82,30 @@ fun AppDrawerScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+//    if (selectionMode) {
+//        Box(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .background(MaterialTheme.colorScheme.primaryContainer)
+//                .padding(8.dp),
+//            contentAlignment = Alignment.Center
+//        ) {
+//            Text(
+//                text = "Select an app for $selectionTitle",
+//                style = MaterialTheme.typography.bodyMedium,
+//                color = MaterialTheme.colorScheme.onPrimaryContainer
+//            )
+//        }
+//    }
+
+
+Column(modifier = Modifier.fillMaxSize().detectSwipeGestures(onSwipeDown = onSwipeDown)) {
+
+        TopAppBar(
+            title = { Text(if (selectionMode) selectionTitle else "Apps") },
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+        )
+
         // Search field
         AppDrawerSearch(
             searchQuery = searchQuery,
@@ -149,16 +179,17 @@ fun AppDrawerScreen(
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(
                         items = appsToShow,
-                        key = { app -> app.getKey() }
+                        key = { app -> "${app.appPackage}/${app.activityClassName ?: ""}/${app.user.hashCode()}" }
                     ) { app ->
                         AppListItem(
                             app = app,
                             showAppIcon = showAppNames,
                             onClick = {
-                                // If there's only one app in search results and user presses enter,
+                                //TODO: If there's only one app in search results and user presses enter,
                                 // launch that app directly
-                                if (appsToShow.size == 1 && searchQuery.isNotEmpty()) {
-                                    onAppClick(app)
+                                //TODO: add auto opening later
+                                if (appsToShow.size == 1 && searchQuery.isNotEmpty()) { //TODO: should execute on every character typed
+                                    onAppClick(appsToShow[0])
                                 } else {
                                     onAppClick(app)
                                 }
@@ -169,6 +200,10 @@ fun AppDrawerScreen(
                             }
                         )
                     }
+                }
+
+                if ((appsToShow.size == 1) and (preferences?.autoOpenFilteredApp != false)) {
+                    onAppClick(appsToShow[0])
                 }
             }
         }
@@ -272,8 +307,10 @@ private fun AppListItem(
             )
         }
 
+        val textLabelShown =  if (showAppIcon) app.appLabel else ""
+
         Text(
-            text = app.appLabel,
+            text = textLabelShown,
             style = MaterialTheme.typography.bodyLarge,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,

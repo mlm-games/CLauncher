@@ -44,6 +44,8 @@ data class SettingsScreenUiState(
     val appTheme: Int = AppCompatDelegate.MODE_NIGHT_YES,
     val textSizeScale: Float = 1.0f,
     val useSystemFont: Boolean = true,
+    val autoOpenFilteredApp : Boolean = true,
+    val showHiddenAppsOnSearch : Boolean = false,
     val homeAlignment: Int = android.view.Gravity.CENTER,
     val homeBottomAlignment: Boolean = false,
     val statusBar: Boolean = false,

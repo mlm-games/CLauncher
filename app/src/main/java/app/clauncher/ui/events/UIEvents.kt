@@ -27,7 +27,10 @@ sealed class UiEvent {
     object ResetLauncher : UiEvent()
     data class ShowToast(val message: String) : UiEvent()
     data class ShowError(val message: String) : UiEvent()
+    data class NavigateToAppSelection(val selectionType: AppSelectionType) : UiEvent()
+    data class ShowAppSelectionDialog(val selectionType: AppSelectionType) : UiEvent()
 }
+
 
 /**
  * Class to manage events
@@ -39,4 +42,19 @@ class EventsManager {
     suspend fun emitEvent(event: UiEvent) {
         _events.emit(event)
     }
+}
+
+enum class AppSelectionType {
+    CLOCK_APP,
+    CALENDAR_APP,
+    HOME_APP_1,
+    HOME_APP_2,
+    HOME_APP_3,
+    HOME_APP_4,
+    HOME_APP_5,
+    HOME_APP_6,
+    HOME_APP_7,
+    HOME_APP_8,
+    SWIPE_LEFT_APP,
+    SWIPE_RIGHT_APP
 }

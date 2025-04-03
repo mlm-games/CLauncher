@@ -1,6 +1,7 @@
 package app.clauncher.ui.compose.screens
 
 import android.view.Gravity
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
@@ -22,6 +23,7 @@ import app.clauncher.helper.isPackageInstalled
 import app.clauncher.helper.openAlarmApp
 import app.clauncher.helper.openCalendar
 import app.clauncher.ui.compose.util.detectSwipeGestures
+import app.clauncher.ui.events.AppSelectionType
 import app.clauncher.ui.events.UiEvent
 import app.clauncher.ui.state.HomeScreenUiState
 import java.text.SimpleDateFormat
@@ -37,20 +39,20 @@ fun HomeScreen(
     val uiState by viewModel.homeScreenState.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
-    // Format date
+
     val currentDate = remember { mutableStateOf(Date()) }
     val dateFormat = SimpleDateFormat("EEE, d MMM", Locale.getDefault())
     val dateText = dateFormat.format(currentDate.value).replace(".,", ",")
 
-    // Time updater effect
+
     LaunchedEffect(key1 = Unit) {
         while(true) {
             currentDate.value = Date()
-            kotlinx.coroutines.delay(60000) // Update every minute
+            kotlinx.coroutines.delay(60000)
         }
     }
 
-    // Error handling
+
     LaunchedEffect(errorMessage) {
         errorMessage?.let {
             viewModel.emitEvent(UiEvent.ShowToast(it))
@@ -82,7 +84,7 @@ fun HomeScreen(
                 )
             }
     ) {
-        // Column for date/time and apps
+        // date/time and homeApps column
         Column(
             modifier = Modifier
                 .align(
@@ -102,7 +104,6 @@ fun HomeScreen(
             verticalArrangement = if (uiState.homeBottomAlignment)
                 Arrangement.Bottom else Arrangement.Center
         ) {
-            // Date and time section
             if (uiState.showDateTime) {
                 DateTimeSection(
                     showTime = uiState.showTime,
@@ -110,18 +111,35 @@ fun HomeScreen(
                     currentDate = currentDate.value,
                     dateText = dateText,
                     homeAlignment = uiState.homeAlignment,
-                    onTimeClick = { viewModel.openClockApp() },
-                    onDateClick = { viewModel.openCalendarApp() }
+                    onTimeClick = { openAlarmApp(context) },
+                    onDateClick = { openCalendar(context) },
+                    onDateLongPress = { viewModel.emitEvent(UiEvent.NavigateToAppSelection(AppSelectionType.CALENDAR_APP)) },
+                    onTimeLongPress = { viewModel.emitEvent(UiEvent.NavigateToAppSelection(AppSelectionType.CLOCK_APP)) }
                 )
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
-            // Home apps section
             HomeApps(
                 homeAppsNum = uiState.homeAppsNum,
                 homeApps = uiState.homeApps.filterNotNull(),
                 alignment = uiState.homeAlignment,
-                onAppClick = { app -> viewModel.launchApp(app) }
+                onAppClick = { app -> viewModel.launchApp(app) },
+                onAppLongPress = { position ->
+                    // Convert position to selection type
+                    val selectionType = when (position) {
+                        0 -> AppSelectionType.HOME_APP_1
+                        1 -> AppSelectionType.HOME_APP_2
+                        2 -> AppSelectionType.HOME_APP_3
+                        3 -> AppSelectionType.HOME_APP_4
+                        4 -> AppSelectionType.HOME_APP_5
+                        5 -> AppSelectionType.HOME_APP_6
+                        6 -> AppSelectionType.HOME_APP_7
+                        7 -> AppSelectionType.HOME_APP_8
+                        else -> AppSelectionType.HOME_APP_1
+                    }
+                    viewModel.emitEvent(UiEvent.NavigateToAppSelection(selectionType))
+                }
+
             )
         }
     }
@@ -135,7 +153,9 @@ private fun DateTimeSection(
     dateText: String,
     homeAlignment: Int,
     onTimeClick: () -> Unit,
-    onDateClick: () -> Unit
+    onDateClick: () -> Unit,
+    onTimeLongPress: () -> Unit,
+    onDateLongPress: () -> Unit
 ) {
     Column(
         horizontalAlignment = when (homeAlignment) {
@@ -151,7 +171,7 @@ private fun DateTimeSection(
                 modifier = Modifier.pointerInput(Unit) {
                     detectTapGestures(
                         onTap = { onTimeClick() },
-                        onLongPress = { /* Select clock app */ }
+                        onLongPress = { onTimeLongPress() }
                     )
                 }
             )
@@ -164,7 +184,7 @@ private fun DateTimeSection(
                 modifier = Modifier.pointerInput(Unit) {
                     detectTapGestures(
                         onTap = { onDateClick() },
-                        onLongPress = { /* Select calendar app */ }
+                        onLongPress = { onDateLongPress() }
                     )
                 }
             )
@@ -177,7 +197,8 @@ private fun HomeApps(
     homeAppsNum: Int,
     homeApps: List<AppModel>,
     alignment: Int,
-    onAppClick: (AppModel) -> Unit
+    onAppClick: (AppModel) -> Unit,
+    onAppLongPress: (Int) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -214,13 +235,12 @@ private fun HomeApps(
                             .pointerInput(app) {
                                 detectTapGestures(
                                     onTap = { onAppClick(app) },
-                                    onLongPress = { /* Navigate to app selection */ }
+                                    onLongPress = { onAppLongPress(i) }
                                 )
                             }
                     )
                 }
             } else {
-                // Empty slot
                 Text(
                     text = "•••",
                     style = MaterialTheme.typography.titleLarge,
@@ -229,7 +249,9 @@ private fun HomeApps(
                         Gravity.END -> TextAlign.End
                         else -> TextAlign.Center
                     },
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    modifier = Modifier
+                        .padding(vertical = 8.dp)
+                        .clickable { onAppLongPress(i) }
                 )
             }
         }

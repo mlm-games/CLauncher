@@ -43,6 +43,8 @@ data class LauncherPreferences(
     val swipeDownAction: Int = Constants.SwipeDownAction.NOTIFICATIONS,
     val textSizeScale: Float = 1.0f,
     val useSystemFont: Boolean = true,
+    val autoOpenFilteredApp: Boolean = true,
+    val showHiddenAppsOnSearch: Boolean = true,
 
     val homeApps: List<HomeAppPreference> = List(8) { HomeAppPreference() },
 
@@ -97,6 +99,9 @@ class PrefsDataStore(private val context: Context) {
         val SWIPE_DOWN_ACTION = intPreferencesKey("SWIPE_DOWN_ACTION")
         val TEXT_SIZE_SCALE = floatPreferencesKey("TEXT_SIZE_SCALE")
         val USE_SYSTEM_FONT = booleanPreferencesKey("USE_SYSTEM_FONT")
+        val AUTO_OPEN_FILTERED_APP = booleanPreferencesKey("AUTO_OPEN_FILTERED_APP")
+        val SHOW_HIDDEN_APPS_IN_SEARCH = booleanPreferencesKey("SHOW_HIDDEN_APPS_IN_SEARCH")
+
 
         val APP_NAME_KEYS = List(8) { stringPreferencesKey("APP_NAME_${it+1}") }
         val APP_PACKAGE_KEYS = List(8) { stringPreferencesKey("APP_PACKAGE_${it+1}") }
@@ -150,6 +155,8 @@ class PrefsDataStore(private val context: Context) {
             swipeDownAction = prefs[SWIPE_DOWN_ACTION] ?: Constants.SwipeDownAction.NOTIFICATIONS,
             textSizeScale = prefs[TEXT_SIZE_SCALE] ?: 1.0f,
             useSystemFont = prefs[USE_SYSTEM_FONT] != false,
+            autoOpenFilteredApp = prefs[AUTO_OPEN_FILTERED_APP] != false,
+            showHiddenAppsOnSearch = prefs[SHOW_HIDDEN_APPS_IN_SEARCH] == true,
 
             homeApps = List(8) { i ->
                 HomeAppPreference(
@@ -219,6 +226,20 @@ class PrefsDataStore(private val context: Context) {
                 prefs[TEXT_SIZE_SCALE] = updatedPrefs.textSizeScale
             if (currentPrefs.hiddenApps != updatedPrefs.hiddenApps)
                 prefs[HIDDEN_APPS] = updatedPrefs.hiddenApps
+            if (currentPrefs.showAppNames != updatedPrefs.showAppNames)
+                prefs[SHOW_APP_NAMES] = updatedPrefs.showAppNames
+            if (currentPrefs.autoShowKeyboard != updatedPrefs.autoShowKeyboard)
+                prefs[AUTO_SHOW_KEYBOARD] = updatedPrefs.autoShowKeyboard
+            if (currentPrefs.useSystemFont != updatedPrefs.useSystemFont)
+                prefs[USE_SYSTEM_FONT] = updatedPrefs.useSystemFont
+            if (currentPrefs.autoOpenFilteredApp != updatedPrefs.autoOpenFilteredApp)
+                prefs[AUTO_OPEN_FILTERED_APP] = updatedPrefs.autoOpenFilteredApp
+            if (currentPrefs.showHiddenAppsOnSearch != updatedPrefs.showHiddenAppsOnSearch)
+                prefs[SHOW_HIDDEN_APPS_IN_SEARCH] = updatedPrefs.showHiddenAppsOnSearch
+            if (currentPrefs.homeBottomAlignment != updatedPrefs.homeBottomAlignment)
+                prefs[HOME_BOTTOM_ALIGNMENT] = updatedPrefs.homeBottomAlignment
+            if (currentPrefs.statusBar != updatedPrefs.statusBar)
+                prefs[STATUS_BAR] = updatedPrefs.statusBar
 
             currentPrefs.homeApps.forEachIndexed { i, oldApp ->
                 val newApp = updatedPrefs.homeApps[i]
@@ -350,6 +371,14 @@ class PrefsDataStore(private val context: Context) {
 
     suspend fun setUseSystemFont(value: Boolean) {
         updatePreference { it.copy(useSystemFont = value) }
+    }
+
+    suspend fun setAutoOpenFilteredApp(value: Boolean) {
+        updatePreference { it.copy(autoOpenFilteredApp = value) }
+    }
+
+    suspend fun setShowHiddenAppsOnSearch(value: Boolean) {
+        updatePreference { it.copy(showHiddenAppsOnSearch = value) }
     }
 
     suspend fun setHomeBottomAlignment(value: Boolean) {

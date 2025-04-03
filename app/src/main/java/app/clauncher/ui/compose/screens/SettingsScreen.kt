@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import app.clauncher.MainViewModel
 import app.clauncher.data.Constants
 import app.clauncher.helper.isClauncherDefault
+import app.clauncher.ui.compose.BackHandler
 import app.clauncher.ui.compose.dialogs.AlignmentPickerDialog
 import app.clauncher.ui.compose.dialogs.DateTimeVisibilityDialog
 import app.clauncher.ui.compose.dialogs.NumberPickerDialog
@@ -31,6 +32,7 @@ import app.clauncher.ui.compose.dialogs.TextSizeDialog
 import app.clauncher.ui.compose.dialogs.ThemePickerDialog
 import app.clauncher.ui.compose.util.SystemUIController
 import app.clauncher.ui.compose.util.updateStatusBarVisibility
+import app.clauncher.ui.events.AppSelectionType
 import app.clauncher.ui.events.UiEvent
 import kotlinx.coroutines.launch
 
@@ -41,6 +43,8 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToHiddenApps: () -> Unit = {}
 ) {
+
+    BackHandler(onBack = onNavigateBack)
     val context = LocalContext.current
     val uiState by viewModel.settingsScreenState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
@@ -174,14 +178,15 @@ fun SettingsScreen(
                     SettingsToggle(
                         title = "Show Apps",
                         isChecked = uiState.showAppNames,
-                        onCheckedChange = {
+                        onCheckedChange = { newValue ->
                             coroutineScope.launch {
-                                viewModel.prefsDataStore.setShowAppNames(it)
+                                viewModel.prefsDataStore.setShowAppNames(newValue)
                                 viewModel.updateSettingsState()
-                                viewModel.updateShowApps(it)
+                                viewModel.updateShowApps(newValue)
                             }
                         }
                     )
+
 
                     SettingsToggle(
                         title = "Auto Show Keyboard",
@@ -189,6 +194,28 @@ fun SettingsScreen(
                         onCheckedChange = {
                             coroutineScope.launch {
                                 viewModel.prefsDataStore.setAutoShowKeyboard(it)
+                                viewModel.updateSettingsState()
+                            }
+                        }
+                    )
+
+                    SettingsToggle(
+                        title = "Show Hidden Apps While Searching",
+                        isChecked = uiState.showHiddenAppsOnSearch,
+                        onCheckedChange = {
+                            coroutineScope.launch {
+                                viewModel.prefsDataStore.setShowHiddenAppsOnSearch(it)
+                                viewModel.updateSettingsState()
+                            }
+                        }
+                    )
+
+                    SettingsToggle(
+                        title = "Auto Open If Filtered App Is Only One",
+                        isChecked = uiState.autoOpenFilteredApp,
+                        onCheckedChange = {
+                            coroutineScope.launch {
+                                viewModel.prefsDataStore.setAutoOpenFilteredApp(it)
                                 viewModel.updateSettingsState()
                             }
                         }
@@ -287,8 +314,7 @@ fun SettingsScreen(
                         subtitle = if (uiState.swipeLeftEnabled) uiState.swipeLeftAppName ?: "Not set" else "Disabled",
                         onClick = {
                             if (uiState.swipeLeftEnabled) {
-                                // Navigate to app selection with flag
-                                viewModel.emitEvent(UiEvent.NavigateToAppDrawer)
+                                viewModel.emitEvent(UiEvent.NavigateToAppSelection(AppSelectionType.SWIPE_LEFT_APP))
                             }
                         },
                         onLongClick = {
@@ -305,8 +331,7 @@ fun SettingsScreen(
                         subtitle = if (uiState.swipeRightEnabled) uiState.swipeRightAppName ?: "Not set" else "Disabled",
                         onClick = {
                             if (uiState.swipeRightEnabled) {
-                                // Navigate to app selection with flag
-                                viewModel.emitEvent(UiEvent.NavigateToAppDrawer)
+                                viewModel.emitEvent(UiEvent.NavigateToAppSelection(AppSelectionType.SWIPE_RIGHT_APP))
                             }
                         },
                         onLongClick = {
@@ -440,8 +465,6 @@ fun SettingsToggle(
     onCheckedChange: (Boolean) -> Unit
 ) {
     var toggleState by remember { mutableStateOf(isChecked) }
-
-    // Update local state when prop changes
     LaunchedEffect(isChecked) {
         toggleState = isChecked
     }
