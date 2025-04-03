@@ -18,6 +18,8 @@ import app.clauncher.data.AppModel
 import app.clauncher.data.Constants
 import app.clauncher.helper.expandNotificationDrawer
 import app.clauncher.helper.getUserHandleFromString
+import app.clauncher.helper.openAlarmApp
+import app.clauncher.helper.openCalendar
 import app.clauncher.helper.openCameraApp
 import app.clauncher.helper.openDialerApp
 import app.clauncher.helper.openSearch
@@ -90,8 +92,7 @@ fun HomeScreen(
                 },
                 onSwipeRight = {
                     if (prefs.swipeRightEnabled) {
-                        // Implement right swipe app launch
-                        // Similar to launchSwipeLeftApp() in ViewModel
+                        viewModel.launchSwipeRightApp()
                     }
                 }
             )
@@ -148,14 +149,15 @@ fun HomeScreen(
                                 .pointerInput(Unit) {
                                     detectTapGestures(
                                         onTap = {
-                                            val clockAppModel = AppModel(
-                                                appLabel = "Clock",
-                                                key = null,
-                                                appPackage = prefs.clockAppPackage ?: "",
-                                                activityClassName = prefs.clockAppClassName,
-                                                user = getUserHandleFromString(context, prefs.clockAppUser ?: "")
-                                            )
-                                            viewModel.launchApp(clockAppModel)
+//                                            val clockAppModel = AppModel(
+//                                                appLabel = "Clock",
+//                                                key = null,
+//                                                appPackage = prefs.clockAppPackage ?: "",
+//                                                activityClassName = prefs.clockAppClassName,
+//                                                user = getUserHandleFromString(context, prefs.clockAppUser ?: "")
+//                                            )
+//                                            viewModel.launchApp(clockAppModel)
+                                            openAlarmApp(context)
                                         },
                                         onLongPress = { /* TODO Select clock app */ }
                                     )
@@ -170,7 +172,7 @@ fun HomeScreen(
                             modifier = Modifier
                                 .pointerInput(Unit) {
                                     detectTapGestures(
-                                        onTap = { TODO("viewModel.openCalendarApp(context)") },
+                                        onTap = { openCalendar(context) },
                                         onLongPress = { /* Select calendar app */ }
                                     )
                                 }
@@ -187,31 +189,6 @@ fun HomeScreen(
                 prefs = prefs,
                 homeAppsNum = homeAppsNum,
                 alignment = prefs.homeAlignment
-            )
-        }
-
-        @Composable
-        fun GestureHandler(
-            onSwipeUp: () -> Unit,
-            onSwipeDown: () -> Unit,
-            onSwipeLeft: () -> Unit,
-            onSwipeRight: () -> Unit
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .pointerInput(Unit) {
-                        detectDragGestures { change, dragAmount ->
-                            change.consume()
-                            val (x, y) = dragAmount
-                            when {
-                                abs(x) > abs(y) && x > 0 -> onSwipeRight()  // Swipe right
-                                abs(x) > abs(y) && x < 0 -> onSwipeLeft()   // Swipe left
-                                abs(y) > abs(x) && y > 0 -> onSwipeDown()   // Swipe down
-                                abs(y) > abs(x) && y < 0 -> onSwipeUp()     // Swipe up
-                            }
-                        }
-                    }
             )
         }
     }
@@ -327,15 +304,4 @@ private fun HomeAppItem(
                 }
         )
     }
-}
-
-@Composable
-private fun GestureHandler(
-    onSwipeUp: () -> Unit,
-    onSwipeDown: () -> Unit,
-    onSwipeLeft: () -> Unit,
-    onSwipeRight: () -> Unit
-) {
-    // Implement gesture detection for the entire screen
-    // Note: This would need a custom implementation or a library like accompanist
 }

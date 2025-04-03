@@ -16,10 +16,10 @@ import app.clauncher.data.AppModel
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AppItem(
+    modifier: Modifier = Modifier,
     app: AppModel,
     onClick: () -> Unit,
-    onLongClick: () -> Unit = {},
-    modifier: Modifier = Modifier
+    onLongClick: () -> Unit = {}
 ) {
     Row(
         modifier = modifier

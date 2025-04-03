@@ -4,7 +4,6 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
@@ -32,6 +31,7 @@ import app.clauncher.data.Prefs
 import app.clauncher.helper.openSearch
 import app.clauncher.ui.compose.AppDrawerSearch
 import kotlinx.coroutines.delay
+import androidx.core.net.toUri
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -105,7 +105,7 @@ fun AppDrawerScreen(
                         onClick = {
                             if (searchQuery.startsWith("!")) {
                                 val searchUrl = Constants.URL_DUCK_SEARCH + searchQuery.substring(1).replace(" ", "%20")
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(searchUrl))
+                                val intent = Intent(Intent.ACTION_VIEW, searchUrl.toUri())
                                 context.startActivity(intent)
                             } else {
                                 openSearch(context)
@@ -127,7 +127,6 @@ fun AppDrawerScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .animateItemPlacement()
                             .combinedClickable(
                                 onClick = {
                                     // If there's only one app in search results and user presses enter,

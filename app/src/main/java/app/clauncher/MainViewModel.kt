@@ -271,9 +271,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /**
-     * Launch the app configured for swipe left
-     */
+
     fun launchSwipeLeftApp() {
         if (prefs.appPackageSwipeLeft?.isNotEmpty() == true) {
             val app = prefs.appNameSwipeLeft?.let {
@@ -296,9 +294,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /**
-     * Launch the app configured for swipe right
-     */
+
     fun launchSwipeRightApp() {
         if (prefs.appPackageSwipeRight?.isNotEmpty() == true) {
             val app = prefs.appNameSwipeRight?.let {

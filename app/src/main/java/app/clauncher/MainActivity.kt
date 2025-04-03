@@ -12,16 +12,15 @@ import android.provider.Settings
 import android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import app.clauncher.data.Constants
+import app.clauncher.data.Navigation
 import app.clauncher.data.Prefs
 import app.clauncher.helper.isDarkThemeOn
 import app.clauncher.helper.isEinkDisplay
@@ -82,6 +81,7 @@ class MainActivity : ComponentActivity() {
     private fun initObservers() {
         viewModel.resetLauncherLiveData.observe(this) {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q)
+                //TODO: show toast saying to set it manually.
                 resetLauncherViaFakeActivity()
             else
                 showLauncherSelector(Constants.REQUEST_CODE_LAUNCHER_SELECTOR)
@@ -125,19 +125,15 @@ class MainActivity : ComponentActivity() {
             recreate()
         }
     }
-
-    @Deprecated("Deprecated in Java")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-            Constants.REQUEST_CODE_ENABLE_ADMIN -> {
-                if (resultCode == Activity.RESULT_OK)
-                    prefs.lockModeOn = true
-            }
-            Constants.REQUEST_CODE_LAUNCHER_SELECTOR -> {
-                if (resultCode == Activity.RESULT_OK)
-                    resetLauncherViaFakeActivity()
+    private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        when (result.resultCode) {
+            RESULT_OK -> {
+                when (result.data?.getIntExtra("requestCode", 0)) { // Or however you're passing the request code back
+                    Constants.REQUEST_CODE_ENABLE_ADMIN -> prefs.lockModeOn = true
+                    Constants.REQUEST_CODE_LAUNCHER_SELECTOR -> resetLauncherViaFakeActivity()
+                }
             }
         }
     }
+
 }

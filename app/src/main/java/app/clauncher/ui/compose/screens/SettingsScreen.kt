@@ -66,10 +66,15 @@ fun SettingsScreen(
         currentTheme = prefs.appTheme,
         onDismiss = { showThemePicker = false },
         onThemeSelected = { newTheme ->
-            prefs.appTheme = newTheme
-            AppCompatDelegate.setDefaultNightMode(newTheme)
+            if (prefs.appTheme != newTheme) {
+                prefs.appTheme = newTheme
+                AppCompatDelegate.setDefaultNightMode(newTheme)
+                (context as? Activity)?.recreate()
+            }
+            showThemePicker = false
         }
     )
+
 
     AlignmentPickerDialog(
         show = showAlignmentPicker,
@@ -165,7 +170,8 @@ fun SettingsScreen(
                         subtitle = when(prefs.appTheme) {
                             AppCompatDelegate.MODE_NIGHT_NO -> "Light"
                             AppCompatDelegate.MODE_NIGHT_YES -> "Dark"
-                            else -> "System"
+                            AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM -> "System"
+                            else -> "Dark"
                         },
                         onClick = { showThemePicker = true }
                     )
@@ -411,6 +417,7 @@ fun SettingsToggle(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable { onCheckedChange(!isChecked) }
             .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
