@@ -168,13 +168,13 @@ class PrefsDataStore(private val context: Context) {
             },
 
             swipeLeftApp = AppPreference(
-                label = prefs[APP_NAME_SWIPE_LEFT] ?: "Camera",
+                label = prefs[APP_NAME_SWIPE_LEFT] ?: "Not set",
                 packageName = prefs[APP_PACKAGE_SWIPE_LEFT] ?: "",
                 activityClassName = prefs[APP_ACTIVITY_CLASS_NAME_SWIPE_LEFT],
                 userString = prefs[APP_USER_SWIPE_LEFT] ?: ""
             ),
             swipeRightApp = AppPreference(
-                label = prefs[APP_NAME_SWIPE_RIGHT] ?: "Phone",
+                label = prefs[APP_NAME_SWIPE_RIGHT] ?: "Not set",
                 packageName = prefs[APP_PACKAGE_SWIPE_RIGHT] ?: "",
                 activityClassName = prefs[APP_ACTIVITY_CLASS_NAME_SWIPE_RIGHT],
                 userString = prefs[APP_USER_SWIPE_RIGHT] ?: ""
@@ -236,6 +236,10 @@ class PrefsDataStore(private val context: Context) {
                 prefs[AUTO_OPEN_FILTERED_APP] = updatedPrefs.autoOpenFilteredApp
             if (currentPrefs.showHiddenAppsOnSearch != updatedPrefs.showHiddenAppsOnSearch)
                 prefs[SHOW_HIDDEN_APPS_IN_SEARCH] = updatedPrefs.showHiddenAppsOnSearch
+            if (currentPrefs.swipeLeftEnabled != updatedPrefs.swipeLeftEnabled)
+                prefs[SWIPE_LEFT_ENABLED] = updatedPrefs.swipeLeftEnabled
+            if (currentPrefs.swipeRightEnabled != updatedPrefs.swipeRightEnabled)
+                prefs[SWIPE_RIGHT_ENABLED] = updatedPrefs.swipeRightEnabled
             if (currentPrefs.homeBottomAlignment != updatedPrefs.homeBottomAlignment)
                 prefs[HOME_BOTTOM_ALIGNMENT] = updatedPrefs.homeBottomAlignment
             if (currentPrefs.statusBar != updatedPrefs.statusBar)

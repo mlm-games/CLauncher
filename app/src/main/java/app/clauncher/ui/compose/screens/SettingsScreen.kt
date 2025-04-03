@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import android.view.Gravity
-import android.view.View
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -211,7 +210,7 @@ fun SettingsScreen(
                     )
 
                     SettingsToggle(
-                        title = "Auto Open If Filtered App Is Only One",
+                        title = "Auto Open Single Matches",
                         isChecked = uiState.autoOpenFilteredApp,
                         onCheckedChange = {
                             coroutineScope.launch {
@@ -308,7 +307,18 @@ fun SettingsScreen(
 
             item {
                 SettingsSection(title = "Gestures") {
-                    // Swipe Left App
+
+                    SettingsToggle(
+                        title = "Left Swipe Gesture",
+                        isChecked = uiState.swipeLeftEnabled,
+                        onCheckedChange = {
+                            coroutineScope.launch {
+                                viewModel.prefsDataStore.setSwipeLeftEnabled(it)
+                                viewModel.updateSettingsState()
+                            }
+                        }
+                    )
+
                     SettingsItem(
                         title = "Swipe Left App",
                         subtitle = if (uiState.swipeLeftEnabled) uiState.swipeLeftAppName ?: "Not set" else "Disabled",
@@ -322,6 +332,17 @@ fun SettingsScreen(
                                 viewModel.prefsDataStore.updatePreference { prefs ->
                                     prefs.copy(swipeLeftEnabled = !uiState.swipeLeftEnabled)
                                 }
+                            }
+                        }
+                    )
+
+                    SettingsToggle(
+                        title = "Right Swipe Gesture",
+                        isChecked = uiState.swipeRightEnabled,
+                        onCheckedChange = {
+                            coroutineScope.launch {
+                                viewModel.prefsDataStore.setSwipeRightEnabled(it)
+                                viewModel.updateSettingsState()
                             }
                         }
                     )
