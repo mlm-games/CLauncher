@@ -17,7 +17,7 @@ import androidx.core.graphics.createBitmap
 /**
  * Cache for app icons to improve performance
  */
-class IconCache(private val context: Context) {
+class IconCache(context: Context) {
     private val launcherApps =
         context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
     private val iconCache = LruCache<String, Bitmap>(200) // Increased cache size

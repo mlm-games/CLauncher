@@ -16,16 +16,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.clauncher.MainViewModel
 import app.clauncher.data.AppModel
-import app.clauncher.data.Constants
 import app.clauncher.helper.expandNotificationDrawer
-import app.clauncher.helper.getUserHandleFromString
 import app.clauncher.helper.isPackageInstalled
 import app.clauncher.helper.openAlarmApp
 import app.clauncher.helper.openCalendar
 import app.clauncher.ui.compose.util.detectSwipeGestures
 import app.clauncher.ui.events.AppSelectionType
 import app.clauncher.ui.events.UiEvent
-import app.clauncher.ui.state.HomeScreenUiState
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -243,7 +240,7 @@ private fun HomeApps(
             } else {
                 Text(
                     text = "•••",
-                    style = MaterialTheme.typography.titleLarge,
+//                    style = MaterialTheme.typography.titleLarge,
                     textAlign = when (alignment) {
                         Gravity.START -> TextAlign.Start
                         Gravity.END -> TextAlign.End

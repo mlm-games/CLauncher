@@ -28,7 +28,6 @@ import androidx.core.net.toUri
 import app.clauncher.MainViewModel
 import app.clauncher.data.AppModel
 import app.clauncher.data.Constants
-import app.clauncher.data.PrefsDataStore
 import app.clauncher.helper.openSearch
 import app.clauncher.ui.compose.AppDrawerSearch
 import app.clauncher.ui.compose.BackHandler

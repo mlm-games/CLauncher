@@ -1,8 +1,6 @@
 package app.clauncher
 
 import android.annotation.SuppressLint
-import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
@@ -31,7 +29,6 @@ import app.clauncher.ui.compose.CLauncherNavigation
 import app.clauncher.ui.compose.util.updateStatusBarVisibility
 import app.clauncher.ui.theme.CLauncherTheme
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 

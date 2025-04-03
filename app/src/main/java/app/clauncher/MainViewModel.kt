@@ -1,14 +1,12 @@
 package app.clauncher
 
 import android.app.Application
-import android.os.UserHandle
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.clauncher.data.*
 import app.clauncher.data.repository.AppRepository
 import app.clauncher.helper.PermissionManager
 import app.clauncher.helper.getUserHandleFromString
-import app.clauncher.ui.events.EventsManager
 import app.clauncher.ui.events.UiEvent
 import app.clauncher.ui.state.AppDrawerUiState
 import app.clauncher.ui.state.HomeScreenUiState

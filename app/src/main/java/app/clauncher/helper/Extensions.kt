@@ -2,37 +2,14 @@ package app.clauncher.helper
 
 import android.app.Activity
 import android.app.AppOpsManager
-import android.app.SearchManager
 import android.app.role.RoleManager
-import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.content.res.Resources
 import android.hardware.display.DisplayManager
 import android.os.Build
-import android.provider.Settings
 import android.view.Display
-import android.view.View
 import android.view.WindowManager
-import android.view.inputmethod.InputMethodManager
 import androidx.annotation.RequiresApi
 import app.clauncher.data.Constants
-
-fun View.hideKeyboard() {
-    this.clearFocus()
-    val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-    imm.hideSoftInputFromWindow(windowToken, 0)
-}
-@Suppress("DEPRECATION")
-fun View.showKeyboard(show: Boolean = true) {
-    if (!show) return
-    if (this.requestFocus())
-        postDelayed({
-            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY)
-        }, 100)
-}
 
 @RequiresApi(Build.VERSION_CODES.Q)
 fun Activity.showLauncherSelector(requestCode: Int) {
@@ -65,11 +42,6 @@ fun Context.resetDefaultLauncher() {
 //    }
 }
 
-fun Context.openSearch(query: String? = null) {
-    val intent = Intent(Intent.ACTION_WEB_SEARCH)
-    intent.putExtra(SearchManager.QUERY, query ?: "")
-    startActivity(intent)
-}
 
 fun Context.isEinkDisplay(): Boolean {
     return try {
@@ -99,8 +71,4 @@ fun Context.appUsagePermissionGranted(): Boolean {
         android.os.Process.myUid(),
         packageName
     ) == AppOpsManager.MODE_ALLOWED
-}
-
-fun Int.dpToPx(): Int {
-    return (this * Resources.getSystem().displayMetrics.density).toInt()
 }

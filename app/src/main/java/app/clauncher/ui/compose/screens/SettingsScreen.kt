@@ -29,7 +29,6 @@ import app.clauncher.ui.compose.dialogs.NumberPickerDialog
 import app.clauncher.ui.compose.dialogs.SwipeDownActionDialog
 import app.clauncher.ui.compose.dialogs.TextSizeDialog
 import app.clauncher.ui.compose.dialogs.ThemePickerDialog
-import app.clauncher.ui.compose.util.SystemUIController
 import app.clauncher.ui.compose.util.updateStatusBarVisibility
 import app.clauncher.ui.events.AppSelectionType
 import app.clauncher.ui.events.UiEvent
@@ -199,7 +198,7 @@ fun SettingsScreen(
                     )
 
                     SettingsToggle(
-                        title = "Show Hidden Apps While Searching",
+                        title = "Show Hidden in Search",
                         isChecked = uiState.showHiddenAppsOnSearch,
                         onCheckedChange = {
                             coroutineScope.launch {

@@ -61,7 +61,7 @@ fun CLauncherNavigation(
                     onScreenChange(Navigation.APP_DRAWER)
                 }
                 else -> {
-                    // Handle other events, presently nothin.
+                    // Handle other events, presently nothing.
                 }
             }
         }
@@ -149,7 +149,7 @@ fun CLauncherNavigation(
 }
 
 @Composable
-public fun BackHandler(enabled: Boolean = true, onBack: () -> Unit) {
+fun BackHandler(enabled: Boolean = true, onBack: () -> Unit) {
     // Safely update the current `onBack` lambda when a new one is provided
     val currentOnBack by rememberUpdatedState(onBack)
     // Remember in Composition a back callback that calls the `onBack` lambda

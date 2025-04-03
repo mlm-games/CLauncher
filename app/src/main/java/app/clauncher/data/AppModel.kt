@@ -2,7 +2,6 @@ package app.clauncher.data
 
 import android.os.UserHandle
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.runtime.Immutable
 import java.text.CollationKey
 
