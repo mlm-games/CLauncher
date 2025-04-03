@@ -78,19 +78,19 @@ class AppRepository(
      *
      * @param app The app to toggle
      */
-//TODO    fun toggleAppHidden(app: AppModel) {
-//        val hiddenApps = prefs.hiddenApps
-//        val appKey = "${app.appPackage}/${app.user}"
-//
-//        if (hiddenApps.contains(appKey)) {
+    suspend fun toggleAppHidden(app: AppModel) {
+        val hiddenApps = prefs.hiddenApps
+        val appKey = "${app.appPackage}/${app.user}"
+
+//TODO        if (hiddenApps.contains(appKey)) {
 //            hiddenApps.remove(appKey)
 //        } else {
 //            hiddenApps.add(appKey)
 //        }
-//
-//        prefs.hiddenApps = hiddenApps
-//        prefs.hiddenAppsUpdated = true
-//    }
+
+//        prefs.setHiddenApps(hiddenApps)
+        prefs.setHiddenAppsUpdated(true)
+    }
 
     /**
      * Launch an app

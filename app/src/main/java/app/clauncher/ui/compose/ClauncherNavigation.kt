@@ -33,9 +33,7 @@ fun CLauncherNavigation(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: Navigation.HOME
 
-    // Navigate to the current screen when it changes
     LaunchedEffect(currentScreen) {
-        // Only navigate if we're not already on this screen
         if (currentRoute != currentScreen) {
             navController.navigate(currentScreen) {
                 // Pop up to the start destination to avoid building up a stack
