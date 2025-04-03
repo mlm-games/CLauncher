@@ -37,6 +37,7 @@ import app.clauncher.R
 import app.clauncher.data.AppModel
 import app.clauncher.data.Constants
 import app.clauncher.data.Prefs
+import app.clauncher.data.PrefsDataStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.InputStream
@@ -47,7 +48,8 @@ import kotlin.math.pow
 import kotlin.math.sqrt
 import androidx.core.net.toUri
 import androidx.core.graphics.createBitmap
-import app.clauncher.data.PrefsDataStore
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
 fun Context.showToast(message: String?, duration: Int = Toast.LENGTH_SHORT) {
     if (message.isNullOrBlank()) return
@@ -60,7 +62,7 @@ fun Context.showToast(stringResource: Int, duration: Int = Toast.LENGTH_SHORT) {
 
 suspend fun getAppsList(
     context: Context,
-    prefs: PrefsDataStore,
+    prefsDataStore: PrefsDataStore,
     includeRegularApps: Boolean = true,
     includeHiddenApps: Boolean = false,
 ): MutableList<AppModel> {
@@ -68,8 +70,7 @@ suspend fun getAppsList(
         val appList: MutableList<AppModel> = mutableListOf()
 
         try {
-            if (!Prefs(context).hiddenAppsUpdated) upgradeHiddenApps(Prefs(context))
-            val hiddenApps = Prefs(context).hiddenApps
+            val hiddenApps = prefsDataStore.hiddenApps.first()
 
             val userManager = context.getSystemService(Context.USER_SERVICE) as UserManager
             val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
@@ -92,7 +93,7 @@ suspend fun getAppsList(
                         profile
                     )
 
-                    // if the current app is not OLauncher
+                    // if the current app is not CLauncher
                     if (!app.applicationInfo.packageName.equals(context.packageName)) {
                         // is this a hidden app?
                         if (hiddenApps.contains(app.applicationInfo.packageName + "|" + profile.toString())) {
