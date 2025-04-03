@@ -3,6 +3,7 @@ package app.clauncher.ui.compose.screens
 import android.view.Gravity
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -17,11 +18,12 @@ import app.clauncher.data.AppModel
 import app.clauncher.data.Constants
 import app.clauncher.helper.expandNotificationDrawer
 import app.clauncher.helper.getUserHandleFromString
+import app.clauncher.helper.isPackageInstalled
 import app.clauncher.helper.openAlarmApp
 import app.clauncher.helper.openCalendar
-import app.clauncher.helper.openDialerApp
-import app.clauncher.helper.openSearch
 import app.clauncher.ui.compose.util.detectSwipeGestures
+import app.clauncher.ui.events.UiEvent
+import app.clauncher.ui.state.HomeScreenUiState
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -32,18 +34,8 @@ fun HomeScreen(
     onNavigateToSettings: () -> Unit
 ) {
     val context = LocalContext.current
-    // val prefs = remember { app.clauncher.data.Prefs(context) }
-
-    // States
-    val homeAppsNum by viewModel.homeAppsNum.collectAsState() // Observe from ViewModel
-    val dateTimeVisibility by viewModel.dateTimeVisibility.collectAsState() // Observe from ViewModel
-
-    val showDateTime = dateTimeVisibility != Constants.DateTime.OFF
-    val showTime = Constants.DateTime.isTimeVisible(dateTimeVisibility)
-    val showDate = Constants.DateTime.isDateVisible(dateTimeVisibility)
-
-    // Home Alignment
-    val homeAlignment by viewModel.homeAlignment.collectAsState()
+    val uiState by viewModel.homeScreenState.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
 
     // Format date
     val currentDate = remember { mutableStateOf(Date()) }
@@ -58,32 +50,35 @@ fun HomeScreen(
         }
     }
 
+    // Error handling
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            viewModel.emitEvent(UiEvent.ShowToast(it))
+            viewModel.clearError()
+        }
+    }
+
+    if (uiState.isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .detectSwipeGestures(
                 onSwipeUp = { onNavigateToAppDrawer() },
-                onSwipeDown = {
-                    expandNotificationDrawer(context)
-                },
-                onSwipeLeft = {
-                    viewModel.launchSwipeLeftApp()
-                },
-                onSwipeRight = {
-                    viewModel.launchSwipeRightApp()
-                }
+                onSwipeDown = { expandNotificationDrawer(context) },
+                onSwipeLeft = { viewModel.launchSwipeLeftApp() },
+                onSwipeRight = { viewModel.launchSwipeRightApp() }
             )
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onDoubleTap = {
-                        // Lock phone functionality
-                    },
-                    onLongPress = {
-                        onNavigateToSettings()
-                    },
-                    onTap = {
-                        // Check for messages
-                    }
+                    onDoubleTap = { /* Lock phone functionality */ },
+                    onLongPress = { onNavigateToSettings() },
+                    onTap = { /* Check for messages */ }
                 )
             }
     ) {
@@ -91,7 +86,7 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .align(
-                    when (homeAlignment) {
+                    when (uiState.homeAlignment) {
                         Gravity.START -> Alignment.CenterStart
                         Gravity.END -> Alignment.CenterEnd
                         else -> Alignment.Center
@@ -99,63 +94,79 @@ fun HomeScreen(
                 )
                 .fillMaxWidth()
                 .padding(16.dp),
-            horizontalAlignment = when (homeAlignment) {
+            horizontalAlignment = when (uiState.homeAlignment) {
                 Gravity.START -> Alignment.Start
                 Gravity.END -> Alignment.End
                 else -> Alignment.CenterHorizontally
             },
-            verticalArrangement = /*if (prefs.homeBottomAlignment) // TODO Bottom Alignment
-                Arrangement.Bottom else */ Arrangement.Center
+            verticalArrangement = if (uiState.homeBottomAlignment)
+                Arrangement.Bottom else Arrangement.Center
         ) {
             // Date and time section
-            if (showDateTime) {
-                Column(
-                    horizontalAlignment = when (homeAlignment) {
-                        Gravity.START -> Alignment.Start
-                        Gravity.END -> Alignment.End
-                        else -> Alignment.CenterHorizontally
-                    }
-                ) {
-                    if (showTime) {
-                        Text(
-                            text = SimpleDateFormat("HH:mm", Locale.getDefault())
-                                .format(currentDate.value),
-                            style = MaterialTheme.typography.headlineLarge,
-                            modifier = Modifier
-                                .pointerInput(Unit) {
-                                    detectTapGestures(
-                                        onTap = {
-                                            openAlarmApp(context)
-                                        },
-                                        onLongPress = { /* TODO Select clock app */ }
-                                    )
-                                }
-                        )
-                    }
-
-                    if (showDate) {
-                        Text(
-                            text = dateText,
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier
-                                .pointerInput(Unit) {
-                                    detectTapGestures(
-                                        onTap = { openCalendar(context) },
-                                        onLongPress = { /* Select calendar app */ }
-                                    )
-                                }
-                        )
-                    }
-                }
-
+            if (uiState.showDateTime) {
+                DateTimeSection(
+                    showTime = uiState.showTime,
+                    showDate = uiState.showDate,
+                    currentDate = currentDate.value,
+                    dateText = dateText,
+                    homeAlignment = uiState.homeAlignment,
+                    onTimeClick = { viewModel.openClockApp() },
+                    onDateClick = { viewModel.openCalendarApp() }
+                )
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
             // Home apps section
             HomeApps(
-                viewModel = viewModel,
-                homeAppsNum = homeAppsNum,
-                alignment = homeAlignment
+                homeAppsNum = uiState.homeAppsNum,
+                homeApps = uiState.homeApps.filterNotNull(),
+                alignment = uiState.homeAlignment,
+                onAppClick = { app -> viewModel.launchApp(app) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun DateTimeSection(
+    showTime: Boolean,
+    showDate: Boolean,
+    currentDate: Date,
+    dateText: String,
+    homeAlignment: Int,
+    onTimeClick: () -> Unit,
+    onDateClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = when (homeAlignment) {
+            Gravity.START -> Alignment.Start
+            Gravity.END -> Alignment.End
+            else -> Alignment.CenterHorizontally
+        }
+    ) {
+        if (showTime) {
+            Text(
+                text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(currentDate),
+                style = MaterialTheme.typography.headlineLarge,
+                modifier = Modifier.pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = { onTimeClick() },
+                        onLongPress = { /* Select clock app */ }
+                    )
+                }
+            )
+        }
+
+        if (showDate) {
+            Text(
+                text = dateText,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = { onDateClick() },
+                        onLongPress = { /* Select calendar app */ }
+                    )
+                }
             )
         }
     }
@@ -163,9 +174,10 @@ fun HomeScreen(
 
 @Composable
 private fun HomeApps(
-    viewModel: MainViewModel,
     homeAppsNum: Int,
-    alignment: Int
+    homeApps: List<AppModel>,
+    alignment: Int,
+    onAppClick: (AppModel) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -177,52 +189,49 @@ private fun HomeApps(
         }
     ) {
         // Generate app items based on homeAppsNum
-        for (i in 1..homeAppsNum) {
-            val appModel = viewModel.getHomeAppModel(i)
-            if (appModel != null) {
-                HomeAppItem(
-                    appModel = appModel,
-                    onClick = { viewModel.selectedApp(
-                        appModel,
-                        Constants.FLAG_LAUNCH_APP
-                    ) },
-                    onLongClick = { /* Navigate to app selection */ },
+        for (i in 0 until homeAppsNum) {
+            if (i < homeApps.size) {
+                val app = homeApps[i]
+                val isInstalled = remember(app.appPackage, app.user) {
+                    isPackageInstalled(
+                        context,
+                        app.appPackage,
+                        app.user.toString()
+                    )
+                }
+
+                if (isInstalled) {
+                    Text(
+                        text = app.appLabel,
+                        style = MaterialTheme.typography.titleLarge,
+                        textAlign = when (alignment) {
+                            Gravity.START -> TextAlign.Start
+                            Gravity.END -> TextAlign.End
+                            else -> TextAlign.Center
+                        },
+                        modifier = Modifier
+                            .padding(vertical = 8.dp)
+                            .pointerInput(app) {
+                                detectTapGestures(
+                                    onTap = { onAppClick(app) },
+                                    onLongPress = { /* Navigate to app selection */ }
+                                )
+                            }
+                    )
+                }
+            } else {
+                // Empty slot
+                Text(
+                    text = "•••",
+                    style = MaterialTheme.typography.titleLarge,
                     textAlign = when (alignment) {
                         Gravity.START -> TextAlign.Start
                         Gravity.END -> TextAlign.End
                         else -> TextAlign.Center
-                    }
+                    },
+                    modifier = Modifier.padding(vertical = 8.dp)
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun HomeAppItem(
-    appModel: AppModel,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit,
-    textAlign: TextAlign
-) {
-    val context = LocalContext.current
-    val isInstalled = remember(appModel.appPackage, appModel.user) {
-        app.clauncher.helper.isPackageInstalled(context, appModel.appPackage, appModel.user.toString())
-    }
-
-    if (isInstalled ) {
-        Text(
-            text = appModel.appLabel,
-            style = MaterialTheme.typography.titleLarge,
-            textAlign = textAlign,
-            modifier = Modifier
-                .padding(vertical = 8.dp)
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onTap = { onClick() },
-                        onLongPress = { onLongClick() }
-                    )
-                }
-        )
     }
 }

@@ -8,15 +8,22 @@ import android.view.accessibility.AccessibilityNodeInfo
 import androidx.annotation.RequiresApi
 import app.clauncher.R
 import app.clauncher.data.PrefsDataStore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MyAccessibilityService : AccessibilityService() {
+    private val serviceScope = CoroutineScope(Dispatchers.Main)
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         return START_STICKY
     }
 
     override fun onServiceConnected() {
-//    Called by a suspend only.    PrefsDataStore(applicationContext).setLockMode(true)
+        serviceScope.launch {
+            val prefsDataStore = PrefsDataStore(applicationContext)
+            prefsDataStore.updatePreference { it.copy(lockMode = true) }
+        }
         super.onServiceConnected()
     }
 
@@ -34,6 +41,6 @@ class MyAccessibilityService : AccessibilityService() {
     }
 
     override fun onInterrupt() {
-
+        // Not needed
     }
 }

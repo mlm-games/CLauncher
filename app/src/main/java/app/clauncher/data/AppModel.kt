@@ -22,5 +22,5 @@ data class AppModel(
         else -> appLabel.compareTo(other.appLabel, true)
     }
 
-    fun getKey(): String = "$appPackage|${user.hashCode()}"
+    fun getKey(): String = "$appPackage/${user.hashCode()}"
 }

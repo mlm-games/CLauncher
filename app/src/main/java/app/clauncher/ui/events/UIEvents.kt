@@ -1,29 +1,42 @@
 package app.clauncher.ui.events
 
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.receiveAsFlow
+import app.clauncher.data.AppModel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 
+/**
+ * UI Events for navigation and actions
+ */
 sealed class UiEvent {
+    // Navigation events
     object NavigateToAppDrawer : UiEvent()
     object NavigateToSettings : UiEvent()
     object NavigateToHiddenApps : UiEvent()
     object NavigateBack : UiEvent()
 
+    // Dialog events
     data class ShowDialog(val dialogType: String) : UiEvent()
 
-    data class LaunchApp(val appId: String) : UiEvent()
-    object CheckForMessages : UiEvent()
-    object ResetLauncher : UiEvent()
+    // App events
+    data class LaunchApp(val app: AppModel) : UiEvent()
+    data class SetHomeApp(val app: AppModel, val position: Int) : UiEvent()
+    data class SetSwipeApp(val app: AppModel, val isLeft: Boolean) : UiEvent()
+    data class ToggleAppHidden(val app: AppModel) : UiEvent()
 
+    // System events
+    object ResetLauncher : UiEvent()
     data class ShowToast(val message: String) : UiEvent()
+    data class ShowError(val message: String) : UiEvent()
 }
 
-// Class to manage events
+/**
+ * Class to manage events
+ */
 class EventsManager {
-    private val _events = Channel<UiEvent>(Channel.BUFFERED)
-    val events = _events.receiveAsFlow()
+    private val _events = MutableSharedFlow<UiEvent>()
+    val events: SharedFlow<UiEvent> = _events
 
     suspend fun emitEvent(event: UiEvent) {
-        _events.send(event)
+        _events.emit(event)
     }
 }

@@ -1,7 +1,7 @@
 package app.clauncher.data.repository
 
-import android.content.Context
 import android.content.ComponentName
+import android.content.Context
 import android.content.pm.LauncherApps
 import android.os.UserManager
 import app.clauncher.data.AppModel
@@ -9,9 +9,7 @@ import app.clauncher.data.PrefsDataStore
 import app.clauncher.helper.IconCache
 import app.clauncher.helper.getAppsList
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
 
 /**
@@ -21,110 +19,81 @@ class AppRepository(
     private val context: Context,
     private val prefs: PrefsDataStore
 ) {
-    private val launcherApps =
-        context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as
-                LauncherApps
-    private val userManager =
-        context.getSystemService(Context.USER_SERVICE) as UserManager
+    private val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+    private val userManager = context.getSystemService(Context.USER_SERVICE) as UserManager
     private val iconCache = IconCache(context)
 
     private val _appList = MutableStateFlow<List<AppModel>>(emptyList())
-    val appList: StateFlow<List<AppModel>> = _appList
+    val appList: StateFlow<List<AppModel>> = _appList.asStateFlow()
 
     private val _hiddenApps = MutableStateFlow<List<AppModel>>(emptyList())
-    val hiddenApps: StateFlow<List<AppModel>> = _hiddenApps
-
-    private val pageSize = 20
+    val hiddenApps: StateFlow<List<AppModel>> = _hiddenApps.asStateFlow()
 
     /**
      * Load all visible apps
      */
     suspend fun loadApps() {
-        try {
-            val apps = getAppsList(context, prefs, includeRegularApps = true, includeHiddenApps = false)
-            // Debug logging
-            println("Loaded ${apps.size} apps")
-            _appList.value = apps
-        } catch (e: Exception) {
-            println("Error loading apps: ${e.message}")
-            e.printStackTrace()
-        }
-    }
-
-    /**
-     * Load apps with icons
-     *
-     * @param loadIcons Whether to load app icons
-     */
-    suspend fun loadAppsWithIcons(loadIcons: Boolean = true): List<AppModel> {
-        val apps = getAppsList(context, prefs, includeRegularApps =
-            true, includeHiddenApps = false)
-
-        if (loadIcons) {
-            return apps.map { app ->
-                val icon = iconCache.getIcon(app.appPackage,
-                    app.activityClassName, app.user)
-                app.copy(appIcon = icon)
+        withContext(Dispatchers.IO) {
+            try {
+                val apps = getAppsList(context, prefs, includeRegularApps = true, includeHiddenApps = false)
+                _appList.value = apps
+            } catch (e: Exception) {
+                throw e
             }
         }
-
-        return apps
     }
 
     /**
      * Load hidden apps
      */
     suspend fun loadHiddenApps() {
-        val hiddenApps = getAppsList(context, prefs,
-            includeRegularApps = false, includeHiddenApps = true)
-        _hiddenApps.value = hiddenApps
+        withContext(Dispatchers.IO) {
+            try {
+                val hiddenApps = getAppsList(context, prefs, includeRegularApps = false, includeHiddenApps = true)
+                _hiddenApps.value = hiddenApps
+            } catch (e: Exception) {
+                throw e
+            }
+        }
     }
 
     /**
      * Toggle app hidden state
-     *
-     * @param app The app to toggle
      */
     suspend fun toggleAppHidden(app: AppModel) {
-        try {
-            val currentHiddenApps = safeGetHiddenApps().toMutableSet()
-            val appKey = "${app.appPackage}/${app.user}"
 
-            if (currentHiddenApps.contains(appKey)) {
-                currentHiddenApps.remove(appKey)
-            } else {
-                currentHiddenApps.add(appKey)
+        val prefsDataStore = prefs
+        withContext(Dispatchers.IO) {
+            try {
+                val appKey = "${app.appPackage}/${app.user.hashCode()}"
+                val currentHiddenApps = prefsDataStore.hiddenApps.first().toMutableSet()
+
+                if (currentHiddenApps.contains(appKey)) {
+                    // App is currently hidden, unhide it
+                    currentHiddenApps.remove(appKey)
+                    println("Unhiding app: $appKey")
+                } else {
+                    // App is currently visible, hide it
+                    currentHiddenApps.add(appKey)
+                    println("Hiding app: $appKey")
+                }
+
+                prefsDataStore.setHiddenApps(currentHiddenApps)
+
+                prefsDataStore.updatePreference { it.copy(hiddenAppsUpdated = true) }
+
+                loadApps()
+                loadHiddenApps()
+            } catch (e: Exception) {
+                println("Error toggling app hidden state: ${e.message}")
+                e.printStackTrace()
+                throw e
             }
-
-            prefs.setHiddenApps(currentHiddenApps)
-            prefs.setHiddenAppsUpdated(true)
-
-            // Refresh lists
-            loadApps()
-            loadHiddenApps()
-        } catch (e: Exception) {
-            println("Error toggling hidden app state: ${e.message}")
-            e.printStackTrace()
         }
     }
-
-    private suspend fun safeGetHiddenApps(): Set<String> {
-        return try {
-            prefs.hiddenApps.first()
-        } catch (e: Exception) {
-            println("Error accessing hidden apps: ${e.message}")
-            e.printStackTrace()
-            emptySet()
-        }
-    }
-
-// Then use this function in loadApps, loadHiddenApps, etc.
 
     /**
      * Launch an app
-     *
-     * @param appModel The app to launch
-     * @throws AppLaunchException if launch fails
      */
     suspend fun launchApp(appModel: AppModel) {
         withContext(Dispatchers.Main) {
@@ -133,8 +102,7 @@ class AppRepository(
                     appModel.appPackage,
                     appModel.activityClassName ?: ""
                 )
-                launcherApps.startMainActivity(component,
-                    appModel.user, null, null)
+                launcherApps.startMainActivity(component, appModel.user, null, null)
             } catch (e: SecurityException) {
                 throw AppLaunchException("Security error launching ${appModel.appLabel}", e)
             } catch (e: NullPointerException) {
@@ -146,36 +114,27 @@ class AppRepository(
     }
 
     /**
-     * Load a page of apps for pagination
-     *
-     * @param page The page number (0-based)
+     * Search apps by query
      */
-    suspend fun loadAppsPaginated(page: Int): List<AppModel> {
-        return withContext(Dispatchers.IO) {
-            val allApps = getAppsList(context, prefs,
-                includeRegularApps = true, includeHiddenApps = false)
-            val startIndex = page * pageSize
-            val endIndex = minOf(startIndex + pageSize, allApps.size)
-
-            if (startIndex < allApps.size) {
-                allApps.subList(startIndex, endIndex)
+    suspend fun searchApps(query: String): List<AppModel> {
+        return withContext(Dispatchers.Default) {
+            if (query.isBlank()) {
+                _appList.value
             } else {
-                emptyList()
+                _appList.value.filter {
+                    it.appLabel.contains(query, ignoreCase = true)
+                }
             }
         }
     }
 
     /**
-     * Search apps by query
-     *
-     * @param query The search query
+     * Check if app is hidden
      */
-    suspend fun searchApps(query: String): List<AppModel> {
-        return withContext(Dispatchers.IO) {
-            val allApps = getAppsList(context, prefs,
-                includeRegularApps = true, includeHiddenApps = false)
-            allApps.filter { it.appLabel.contains(query, ignoreCase = true) }
-        }
+    suspend fun isAppHidden(app: AppModel): Boolean {
+        val preferences = prefs.preferences.first()
+        val appKey = "${app.appPackage}/${app.user}"
+        return preferences.hiddenApps.contains(appKey)
     }
 
     /**
@@ -188,6 +147,5 @@ class AppRepository(
     /**
      * Exception for app launch failures
      */
-    class AppLaunchException(message: String, cause: Throwable? =
-        null) : Exception(message, cause)
+    class AppLaunchException(message: String, cause: Throwable? = null) : Exception(message, cause)
 }

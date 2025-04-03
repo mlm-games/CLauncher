@@ -19,29 +19,23 @@ import androidx.core.graphics.createBitmap
  */
 class IconCache(private val context: Context) {
     private val launcherApps =
-        context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as
-                LauncherApps
-    private val iconCache = LruCache<String, Bitmap>(100) // Cache 100 icons
+        context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+    private val iconCache = LruCache<String, Bitmap>(200) // Increased cache size
 
     /**
      * Get an app icon, either from cache or by loading it
-     *
-     * @param packageName The app package name
-     * @param className The activity class name
-     * @param user The user handle
-     * @return The app icon bitmap or null if not available
      */
-    suspend fun getIcon(packageName: String, className: String?, user:
-    UserHandle): ImageBitmap? {
+    suspend fun getIcon(packageName: String, className: String?, user: UserHandle): ImageBitmap? {
         val cacheKey = "$packageName|$className|${user.hashCode()}"
 
         // Check cache first
-        iconCache[cacheKey]?.let { return it.asImageBitmap() }
+        synchronized(iconCache) {
+            iconCache[cacheKey]?.let { return it.asImageBitmap() }
+        }
 
         // Load icon if not in cache
         return withContext(Dispatchers.IO) {
             try {
-
                 val component = ComponentName(packageName, className ?: "")
                 val appInfo = launcherApps.getActivityList(packageName, user)
                     .find { it.componentName.className == className }
@@ -51,7 +45,11 @@ class IconCache(private val context: Context) {
                     val bitmap = drawableToBitmap(icon)
 
                     // Cache the bitmap
-                    bitmap?.let { iconCache.put(cacheKey, it) }
+                    bitmap?.let {
+                        synchronized(iconCache) {
+                            iconCache.put(cacheKey, it)
+                        }
+                    }
                     bitmap?.asImageBitmap()
                 }
             } catch (e: Exception) {
@@ -62,9 +60,6 @@ class IconCache(private val context: Context) {
 
     /**
      * Convert a drawable to a bitmap
-     *
-     * @param drawable The drawable to convert
-     * @return The bitmap or null if conversion fails
      */
     private fun drawableToBitmap(drawable: Drawable): Bitmap? {
         try {
@@ -88,6 +83,8 @@ class IconCache(private val context: Context) {
      * Clear the icon cache
      */
     fun clearCache() {
-        iconCache.evictAll()
+        synchronized(iconCache) {
+            iconCache.evictAll()
+        }
     }
 }

@@ -15,7 +15,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.*
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -23,26 +22,24 @@ import androidx.lifecycle.repeatOnLifecycle
 import app.clauncher.data.Constants
 import app.clauncher.data.Navigation
 import app.clauncher.data.PrefsDataStore
-import app.clauncher.helper.isDarkThemeOn
 import app.clauncher.helper.isEinkDisplay
+import app.clauncher.helper.isDarkThemeOn
 import app.clauncher.helper.isTablet
 import app.clauncher.helper.setPlainWallpaper
 import app.clauncher.helper.showLauncherSelector
 import app.clauncher.ui.compose.CLauncherNavigation
+import app.clauncher.ui.compose.util.updateStatusBarVisibility
 import app.clauncher.ui.theme.CLauncherTheme
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
-    private lateinit var prefsDataStore: PrefsDataStore
     private lateinit var viewModel: MainViewModel
 
-    override fun attachBaseContext(context: Context) {
-        super.attachBaseContext(context)
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
-        prefsDataStore = PrefsDataStore(this)
+        val prefsDataStore = PrefsDataStore(this)
         lifecycleScope.launch {
             val appTheme = prefsDataStore.appTheme.first()
             if (isEinkDisplay()) {
@@ -66,23 +63,27 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        lifecycleScope.launch {
+            //ensure window is ready
+            delay(500)
+            prefsDataStore.preferences.first().let { prefs ->
+                try {
+                    updateStatusBarVisibility(this@MainActivity, prefs.statusBar)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+
+
         setupOrientation()
         window.addFlags(FLAG_LAYOUT_NO_LIMITS)
 
         setContent {
-//  FIXME: causes the app to not load, even app loading doesn't work due to the same error: null cannot be cast to non-null type kotlin.collections.Set<kotlin.String>
-            //val context = LocalContext.current
-//            val textSizeScale by prefsDataStore.textSizeScale.collectAsState(initial = 1.0f)
-//
-//            LaunchedEffect(textSizeScale) {
-//                val newConfig = Configuration(context.resources.configuration)
-//                newConfig.fontScale = textSizeScale
-//                context.createConfigurationContext(newConfig)
-//                this@MainActivity.recreate()
-//            }
+            val preferences by prefsDataStore.preferences.collectAsState(initial = null)
 
             CLauncherTheme {
-                var currentScreen by remember { mutableStateOf("home") }
+                var currentScreen by remember { mutableStateOf(Navigation.HOME) }
 
                 CLauncherNavigation(
                     viewModel = viewModel,
@@ -91,7 +92,6 @@ class MainActivity : ComponentActivity() {
                         currentScreen = screen
                     }
                 )
-
             }
         }
 
@@ -100,16 +100,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun initObservers() {
-//        viewModel.resetLauncherLiveData.observe(this) {
-//            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q)
-//                //TODO: show toast saying to set it manually.
-//                resetLauncherViaFakeActivity()
-//            else
-//                showLauncherSelector(Constants.REQUEST_CODE_LAUNCHER_SELECTOR)
-//        }
-
         lifecycleScope.launch {
-            // Only collect when the lifecycle is at least STARTED
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.launcherResetFailed.collect { resetFailed ->
                     openLauncherChooser(resetFailed)
@@ -141,23 +132,24 @@ class MainActivity : ComponentActivity() {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         lifecycleScope.launch {
-            val appTheme = prefsDataStore.appTheme.first()
+            val appTheme = viewModel.prefsDataStore.appTheme.first()
             AppCompatDelegate.setDefaultNightMode(appTheme)
 
-            val plainWallpaper = prefsDataStore.plainWallpaper.first()
+            val plainWallpaper = viewModel.prefsDataStore.plainWallpaper.first()
             if (plainWallpaper && AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) {
                 setPlainWallpaper()
                 recreate()
             }
         }
     }
+
     private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         when (result.resultCode) {
             RESULT_OK -> {
-                when (result.data?.getIntExtra("requestCode", 0)) { // Or however you're passing the request code back
+                when (result.data?.getIntExtra("requestCode", 0)) {
                     Constants.REQUEST_CODE_ENABLE_ADMIN -> {
                         lifecycleScope.launch {
-                            prefsDataStore.setLockMode(true)
+                            viewModel.prefsDataStore.updatePreference { it.copy(lockMode = true) }
                         }
                     }
                     Constants.REQUEST_CODE_LAUNCHER_SELECTOR -> {
@@ -166,11 +158,9 @@ class MainActivity : ComponentActivity() {
                         } else {
                             showLauncherSelector(Constants.REQUEST_CODE_LAUNCHER_SELECTOR)
                         }
-
                     }
                 }
             }
         }
     }
-
 }

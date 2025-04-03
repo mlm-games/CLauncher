@@ -63,13 +63,14 @@ suspend fun getAppsList(
     context: Context,
     prefsDataStore: PrefsDataStore,
     includeRegularApps: Boolean = true,
-    includeHiddenApps: Boolean = false,
+    includeHiddenApps: Boolean = false
 ): MutableList<AppModel> {
     return withContext(Dispatchers.IO) {
         val appList: MutableList<AppModel> = mutableListOf()
 
         try {
             val hiddenApps = prefsDataStore.hiddenApps.first()
+            println("Hidden apps count: ${hiddenApps.size}")
 
             val userManager = context.getSystemService(Context.USER_SERVICE) as UserManager
             val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
@@ -77,12 +78,12 @@ suspend fun getAppsList(
 
             for (profile in userManager.userProfiles) {
                 for (app in launcherApps.getActivityList(null, profile)) {
+                    // Skip CLauncher itself
+                    if (app.applicationInfo.packageName == context.packageName) continue
 
-                    val appLabelShown = app.label.toString() + if (profile != android.os.Process.myUserHandle()) " (Clone)" else ""
+                    val appLabelShown = app.label.toString() +
+                            if (profile != android.os.Process.myUserHandle()) " (Clone)" else ""
 
-//                    val appLabelShown = oldPrefs.getAppRenameLabel(app.applicationInfo.packageName).ifBlank {
-//                        app.label.toString() + if (profile != android.os.Process.myUserHandle()) " (Clone)" else ""
-//                    }
                     val appModel = AppModel(
                         appLabelShown,
                         collator.getCollationKey(app.label.toString()),
@@ -92,18 +93,17 @@ suspend fun getAppsList(
                         profile
                     )
 
-                    // if the current app is not CLauncher
-                    if (!app.applicationInfo.packageName.equals(context.packageName)) {
-                        // is this a hidden app?
-                        if (hiddenApps.contains(app.applicationInfo.packageName + "|" + profile.toString())) {
-                            if (includeHiddenApps) {
-                                appList.add(appModel)
-                            }
-                        } else {
-                            // this is a regular app
-                            if (includeRegularApps) {
-                                appList.add(appModel)
-                            }
+                    val appKey = "${app.applicationInfo.packageName}/${profile.hashCode()}"
+                    val isHidden = hiddenApps.contains(appKey)
+                    println("App: $appKey, isHidden: $isHidden")
+
+                    if (isHidden) {
+                        if (includeHiddenApps) {
+                            appList.add(appModel.copy(isHidden = true))
+                        }
+                    } else {
+                        if (includeRegularApps) {
+                            appList.add(appModel)
                         }
                     }
                 }
@@ -111,6 +111,7 @@ suspend fun getAppsList(
             appList.sortBy { it.appLabel.lowercase() }
 
         } catch (e: Exception) {
+            println("Error loading apps: ${e.message}")
             e.printStackTrace()
         }
         appList
