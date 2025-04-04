@@ -8,7 +8,7 @@ If you need to rename or hide any apps, you could show the apps and then perform
 
 ## Install
 
-#### Install from [F-Droid](...) or download the APK from the [latest release](https://github.com/mlm-games/Clauncher/releases/).
+#### Install from [F-Droid](https://f-droid.org/packages/app.clauncher) or download the APK from the [latest release](https://github.com/mlm-games/Clauncher/releases/).
 
 [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
     alt="Get it on F-Droid"
