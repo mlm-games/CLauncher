@@ -116,7 +116,7 @@ jobs:
           find app/build/outputs/apk/release/ -name "*-release.apk" -exec cp {} artifacts/clauncher-${{ needs.prepare-version.outputs.version_name }}.apk \;
 
       - name: Upload to Release
-        if: github.event_name == 'workflow_dispatch' && env.UPLOAD_RELEASES == 'true'
+        # if: github.event_name == 'workflow_dispatch' && env.UPLOAD_RELEASES == 'true'
         uses: softprops/action-gh-release@v2
         with:
           files: artifacts/clauncher-${{ needs.prepare-version.outputs.version_name }}.apk
