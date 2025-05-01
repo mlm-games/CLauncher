@@ -1,8 +1,6 @@
 name: bi-monthly Android App Deploy
 
 on:
-  schedule:
-    - cron: '0 0 1 */2 *'
   workflow_dispatch:  # Manual trigger
       inputs:
         upload_releases:
