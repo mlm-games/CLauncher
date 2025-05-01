@@ -24,6 +24,7 @@ import app.clauncher.helper.isTablet
 import app.clauncher.helper.resetLauncherViaFakeActivity
 import app.clauncher.helper.setPlainWallpaper
 import app.clauncher.helper.showLauncherSelector
+import androidx.navigation.findNavController
 
 class MainActivity : AppCompatActivity() {
 
@@ -34,8 +35,9 @@ class MainActivity : AppCompatActivity() {
 
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        if (navController.currentDestination?.id != R.id.mainFragment)
+        if (navController.currentDestination?.id != R.id.mainFragment) {
             super.onBackPressed()
+        }
     }
 
     override fun attachBaseContext(context: Context) {
@@ -53,7 +55,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        navController = Navigation.findNavController(this, R.id.nav_host_fragment)
+        navController = this.findNavController(R.id.nav_host_fragment)
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
         if (prefs.firstOpen) {
             viewModel.firstOpen(true)
@@ -85,8 +87,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onNewIntent(intent: Intent?) {
+        intent ?: return super.onNewIntent(intent)
         // Check if this is an app switch intent
-        if (intent?.action != Intent.ACTION_MAIN ||
+        if (intent.action != Intent.ACTION_MAIN &&
             intent.hasCategory(Intent.CATEGORY_HOME)) {
             backToHomeScreen()
         }
@@ -95,13 +98,19 @@ class MainActivity : AppCompatActivity() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        AppCompatDelegate.setDefaultNightMode(prefs.appTheme)
-        if (prefs.plainWallpaper && AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) {
+
+        if (prefs.appTheme == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) {
+            AppCompatDelegate.setDefaultNightMode(prefs.appTheme)
+            updatePlainWallpaper()
+        }
+    }
+
+    private fun updatePlainWallpaper() {
+        if (prefs.plainWallpaper) {
             setPlainWallpaper()
             recreate()
         }
     }
-
 //    private fun initClickListeners() {
 //        binding.ivClose.setOnClickListener {
 //            binding.messageLayout.visibility = View.GONE
@@ -254,12 +263,12 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             Constants.REQUEST_CODE_ENABLE_ADMIN -> {
-                if (resultCode == Activity.RESULT_OK)
+                if (resultCode == RESULT_OK)
                     prefs.lockModeOn = true
             }
 
             Constants.REQUEST_CODE_LAUNCHER_SELECTOR -> {
-                if (resultCode == Activity.RESULT_OK)
+                if (resultCode == RESULT_OK)
                     resetLauncherViaFakeActivity()
             }
         }

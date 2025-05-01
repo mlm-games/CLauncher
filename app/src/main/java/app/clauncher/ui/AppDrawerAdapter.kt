@@ -242,13 +242,8 @@ class AppDrawerAdapter(
                             appRenameListener(appModel, renameLabel)
                             renameLayout.visibility = View.GONE
                         } else {
-                            val packageManager = etAppRename.context.packageManager
-                            appRenameListener(
-                                appModel,
-                                packageManager.getApplicationLabel(
-                                    packageManager.getApplicationInfo(appModel.appPackage, 0)
-                                ).toString()
-                            )
+                            val appName = getAppName(etAppRename.context, appModel.appPackage)
+                            appRenameListener(appModel, appName)
                             renameLayout.visibility = View.GONE
                         }
                     }
