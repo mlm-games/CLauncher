@@ -9,7 +9,7 @@ android {
 
     splits {
         abi {
-            enable true
+            enable false
             reset()
             if (project.hasProperty('targetAbi')) {
                 include project.property('targetAbi')
