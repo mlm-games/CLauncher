@@ -67,7 +67,7 @@
     <string name="email">Email</string>
 
     <string name="donate">Spenden</string>
-    <string name="swipe_up_for_apps">1. Für alle Apps nach oben wischen\n2. Drücken Sie lange auf eine beliebige Stelle, um Einstellungen vorzunehmen</string>
+    <string name="swipe_up_for_apps">1. Für alle Apps nach oben wischen\\n2. Drücken Sie lange auf eine beliebige Stelle, um Einstellungen vorzunehmen\\n3. Drücken Sie die Eingabetaste während der Suche, um die am besten passende App zu öffnen.\\n(optional) Benennen Sie Apps mit demselben Namen um, um die zweite App öffnen zu können.</string>
     <string name="apps_on_home_screen">Apps auf dem Startbildschirm</string>
     <string name="left">Links</string>
     <string name="right">Rechts</string>
@@ -132,4 +132,5 @@
         \n\nWir glauben, dass der Wechsel zu einem Minimal Launcher eine ausgezeichnete Entscheidung ist. Obwohl wir offensichtlich voreingenommen sind, hoffen wir, dass Ihnen die Erfahrung gefällt. Teilen Sie uns gerne Ihre Gedanken mit!</string>
     <string name="alignment_changed">Ausrichtung geändert ✅</string>
     <string name="home_screen">Startbildschirm</string>
+    <string name="please_select_an_app">Bitte wählen Sie eine App aus</string>
 </resources>

@@ -58,7 +58,7 @@
     <string name="email">电子邮件</string>
 
     <string name="donate">捐赠</string>
-    <string name="swipe_up_for_apps">1. 向上滑动查看所有应用\n2.长按任意位置进行设置</string>
+    <string name="swipe_up_for_apps">1. 向上滑动查看所有应用\\n2.长按任意位置进行设置\\n3. 搜索时按 Enter 键打开最接近的匹配应用程序。\\n（可选）重命名任何同名的应用程序以能够打开第二个应用程序。</string>
     <string name="apps_on_home_screen">主屏幕上的应用程序</string>
     <string name="left">左对齐</string>
     <string name="right">右对齐</string>

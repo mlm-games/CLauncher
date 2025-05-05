@@ -22,7 +22,7 @@
     <string name="email">Correo electrónico</string>
 
     <string name="donate">Donar</string>
-    <string name="swipe_up_for_apps">1. Deslize hacia arriba para todas las aplicaciones\n2. Mantenga pulsado en cualquier lugar para la configuración</string>
+    <string name="swipe_up_for_apps">1. Desliza hacia arriba para ver todas las aplicaciones\\n2. Mantén pulsado en cualquier lugar para abrir la configuración\\n3. Presiona Enter mientras buscas para abrir la aplicación coincidente más cercana.\\n(opcional) Cambia el nombre de las aplicaciones con el mismo nombre para poder abrir la segunda aplicación.</string>
     <string name="apps_on_home_screen">Aplicaciones en la pantalla de inicio</string>
     <string name="left">Izquierda</string>
     <string name="right">Derecha</string>
@@ -129,4 +129,5 @@
         \n\nCreemos que cambiar a un lanzador mínimo es una excelente decisión. Aunque obviamente somos parciales, esperamos que disfrutes la experiencia. ¡No dude en compartir sus pensamientos con nosotros!</string>
     <string name="alignment_changed">Alineación cambiada ✅</string>
     <string name="home_screen">Pantalla de inicio</string>
+    <string name="please_select_an_app">Por favor seleccione una aplicación</string>
 </resources>

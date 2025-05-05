@@ -66,7 +66,7 @@
     <string name="follow">يتبع</string>
     <string name="email">بريد إلكتروني</string>
     <string name="donate">يتبرع</string>
-    <string name="swipe_up_for_apps">1. مرر لأعلى لجميع التطبيقات\n2. اضغط لفترة طويلة في أي مكان للإعدادات</string>
+    <string name="swipe_up_for_apps">1. مرر لأعلى لجميع التطبيقات\\n2. اضغط لفترة طويلة في أي مكان للإعدادات\\n3. اضغط على Enter أثناء البحث لفتح أقرب تطبيق مطابق.\\n(اختياري) أعد تسمية أي تطبيقات لها نفس الاسم لتتمكن من فتح التطبيق الثاني.</string>
     <string name="apps_on_home_screen">تطبيقات على الشاشة الرئيسية</string>
     <string name="left">غادر</string>
     <string name="right">يمين</string>
@@ -127,4 +127,5 @@
     <string name="screen_time">وقت الشاشة</string>
     <string name="alignment_changed">تم تغيير المحاذاة ✅</string>
     <string name="home_screen">شاشة الرئيسية</string>
+    <string name="please_select_an_app">الرجاء تحديد تطبيق</string>
 </resources>
