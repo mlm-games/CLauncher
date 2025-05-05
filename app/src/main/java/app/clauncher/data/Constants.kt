@@ -105,7 +105,7 @@ object Constants {
     const val URL_WALLPAPERS = ""
     const val URL_DEFAULT_DARK_WALLPAPER = ""
     const val URL_DEFAULT_LIGHT_WALLPAPER = ""
-    const val URL_DUCK_SEARCH = ""
+    const val URL_DUCK_SEARCH = "https://duckduckgo.com?q="
     const val URL_DIGITAL_WELLBEING_LEARN_MORE = ""
 
     const val DIGITAL_WELLBEING_PACKAGE_NAME = "com.google.android.apps.wellbeing"

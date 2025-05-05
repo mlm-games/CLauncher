@@ -17,8 +17,6 @@ import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Point
-import android.net.Uri
-import android.os.Build
 import android.os.UserHandle
 import android.os.UserManager
 import android.provider.AlarmClock
@@ -35,21 +33,18 @@ import android.widget.Toast
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.graphics.createBitmap
+import androidx.core.net.toUri
 import app.clauncher.R
 import app.clauncher.data.AppModel
 import app.clauncher.data.Constants
 import app.clauncher.data.Prefs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.text.Collator
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.Scanner
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -178,7 +173,7 @@ fun setPlainWallpaperByTheme(context: Context, appTheme: Int) {
 
 fun setPlainWallpaper(context: Context, color: Int) {
     try {
-        val bitmap = Bitmap.createBitmap(1000, 2000, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(1000, 2000)
         bitmap.eraseColor(context.getColor(color))
         val manager = WallpaperManager.getInstance(context)
         manager.setBitmap(bitmap, null, false, WallpaperManager.FLAG_SYSTEM)
@@ -230,7 +225,7 @@ suspend fun getBitmapFromURL(src: String?): Bitmap? {
 suspend fun getWallpaperBitmap(originalImage: Bitmap, width: Int, height: Int): Bitmap {
     return withContext(Dispatchers.IO) {
 
-        val background = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val background = createBitmap(width, height)
 
         val originalWidth: Float = originalImage.width.toFloat()
         val originalHeight: Float = originalImage.height.toFloat()
@@ -385,7 +380,7 @@ fun openCalendar(context: Context) {
         context.startActivity(Intent(Intent.ACTION_VIEW, calendarUri))
     } catch (e: Exception) {
         try {
-            val intent = Intent(Intent.ACTION_MAIN)
+            val intent = Intent(Intent.ACTION_MAIN).setPackage("app.clauncher.MainActivity")
             intent.addCategory(Intent.CATEGORY_APP_CALENDAR)
             context.startActivity(intent)
         } catch (e: Exception) {
@@ -433,7 +428,7 @@ fun Context.copyToClipboard(text: String) {
 fun Context.openUrl(url: String) {
     if (url.isEmpty()) return
     val intent = Intent(Intent.ACTION_VIEW)
-    intent.data = Uri.parse(url)
+    intent.data = url.toUri()
     startActivity(intent)
 }
 
@@ -451,7 +446,7 @@ fun Context.isSystemApp(packageName: String): Boolean {
 
 fun Context.uninstall(packageName: String) {
     val intent = Intent(Intent.ACTION_DELETE)
-    intent.data = Uri.parse("package:$packageName")
+    intent.data = "package:$packageName".toUri()
     startActivity(intent)
 }
 
@@ -490,7 +485,7 @@ fun Context.shareApp() {
 fun Context.rateApp() {
     val intent = Intent(
         Intent.ACTION_VIEW,
-        Uri.parse(Constants.URL_CLAUNCHER_PLAY_STORE)
+        Constants.URL_CLAUNCHER_PLAY_STORE.toUri()
     )
     var flags = Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_MULTIPLE_TASK
     flags = flags or Intent.FLAG_ACTIVITY_NEW_DOCUMENT
