@@ -7,6 +7,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
 import app.clauncher.data.Constants
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -17,7 +18,7 @@ import kotlin.math.abs
 
 internal open class ViewSwipeTouchListener(c: Context?, v: View) : OnTouchListener {
     private var longPressOn = false
-    private val gestureDetector: GestureDetector
+    private val gestureDetector: GestureDetector = GestureDetector(c, GestureListener(v))
 
     override fun onTouch(view: View, motionEvent: MotionEvent): Boolean {
         when (motionEvent.action) {
@@ -45,6 +46,7 @@ internal open class ViewSwipeTouchListener(c: Context?, v: View) : OnTouchListen
             return super.onDoubleTap(e)
         }
 
+        @OptIn(DelicateCoroutinesApi::class)
         override fun onLongPress(e: MotionEvent) {
             longPressOn = true
             GlobalScope.launch {
@@ -89,8 +91,4 @@ internal open class ViewSwipeTouchListener(c: Context?, v: View) : OnTouchListen
     open fun onLongClick(view: View) {}
     private fun onDoubleClick() {}
     open fun onClick(view: View) {}
-
-    init {
-        gestureDetector = GestureDetector(c, GestureListener(v))
-    }
 }

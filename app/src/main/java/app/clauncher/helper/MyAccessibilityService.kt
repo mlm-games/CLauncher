@@ -28,7 +28,7 @@ class MyAccessibilityService : AccessibilityService() {
                 (source.contentDescription == getString(R.string.lock_layout_description))
             )
                 performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return
         }
     }

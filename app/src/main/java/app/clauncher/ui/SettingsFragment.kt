@@ -69,7 +69,6 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
         populateKeyboardText()
         populateScreenTimeOnOff()
         populateLockSettings()
-        //populateWallpaperText()
         populateAppThemeText()
         populateTextSize()
         populateAlignment()
@@ -77,7 +76,6 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
         populateDateTime()
         populateSwipeApps()
         populateSwipeDownAction()
-        //populateActionHints()
         initClickListeners()
         initObservers()
         populateSystemFontText()
@@ -95,15 +93,12 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
         when (view.id) {
             R.id.systemFont -> toggleSystemFont()
             R.id.clauncherHiddenApps -> showHiddenApps()
-            //R.id.clauncherPro -> requireContext().openUrl(Constants.URL_CLAUNCHER_PRO)
-            //R.id.digitalWellbeing -> viewModel.showDialog.postValue(Constants.Dialog.DIGITAL_WELLBEING)
             R.id.appInfo -> openAppInfo(requireContext(), Process.myUserHandle(), requireContext().packageName)
             R.id.setLauncher -> viewModel.resetLauncherLiveData.call()
             R.id.toggleLock -> toggleLockMode()
             R.id.showApps -> toggleAppVisibility()
             R.id.autoShowKeyboard -> toggleKeyboardText()
             R.id.homeAppsNum -> binding.appsNumSelectLayout.visibility = View.VISIBLE
-            //R.id.plainWallpaperUrl -> requireContext().openUrl(prefs.plainWallpaperUrl)
             R.id.plainWallpaper -> setPlainWallpaper()
             R.id.alignment -> binding.alignmentSelectLayout.visibility = View.VISIBLE
             R.id.alignmentLeft -> viewModel.updateHomeAlignment(Gravity.START)
@@ -207,12 +202,6 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
         binding.closeAccessibility.setOnClickListener(this)
         binding.notWorking.setOnClickListener(this)
         binding.systemFont?.setOnClickListener(this)
-
-//        binding.share.setOnClickListener(this)
-//        binding.rate.setOnClickListener(this)
-//        binding.twitter.setOnClickListener(this)
-//        binding.github.setOnClickListener(this)
-//        binding.privacy.setOnClickListener(this)
         binding.footer.setOnClickListener(this)
 
         binding.maxApps0.setOnClickListener(this)
@@ -246,12 +235,6 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
             viewModel.showDialog.postValue(Constants.Dialog.ABOUT)
             prefs.firstSettingsOpen = false
         }
-//        viewModel.isClauncherDefault.observe(viewLifecycleOwner) {
-//            if (it) {
-//                binding.setLauncher.text = getString(R.string.change_default_launcher)
-//                prefs.toShowHintCounter += 1
-//            }
-//        }
         viewModel.homeAppAlignment.observe(viewLifecycleOwner) {
             populateAlignment()
         }
@@ -423,19 +406,6 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
         prefs.plainWallpaper = !prefs.plainWallpaper
     }
 
-//    private fun toggleDailyWallpaperUpdate() {
-//        if (prefs.dailyWallpaper.not() && viewModel.isClauncherDefault.value == false) {
-//            requireContext().showToast(R.string.set_as_default_launcher_first)
-//            return
-//        }
-//        prefs.dailyWallpaper = !prefs.dailyWallpaper
-//        populateWallpaperText()
-//        if (prefs.dailyWallpaper) {
-//            viewModel.setWallpaperWorker()
-//            showWallpaperToasts()
-//        } else viewModel.cancelWallpaperWorker()
-//    }
-
     private fun showWallpaperToasts() {
         requireContext().showToast(getString(R.string.change_to_your_preferred_wallpaper_in_settings))
    }
@@ -597,12 +567,6 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
             binding.swipeRightApp.setTextColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
     }
 
-//    private fun populateDigitalWellbeing() {
-//        binding.digitalWellbeing.isVisible = requireContext().isPackageInstalled(Constants.DIGITAL_WELLBEING_PACKAGE_NAME).not()
-//                && requireContext().isPackageInstalled(Constants.DIGITAL_WELLBEING_SAMSUNG_PACKAGE_NAME).not()
-//                && prefs.hideDigitalWellbeing.not()
-//    }
-
     private fun showAppListIfEnabled(flag: Int) {
         if ((flag == Constants.FLAG_SET_SWIPE_LEFT_APP) and !prefs.swipeLeftEnabled) {
             requireContext().showToast(getString(R.string.long_press_to_enable))
@@ -618,12 +582,6 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
             bundleOf(Constants.Key.FLAG to flag)
         )
     }
-
-//    private fun populateActionHints() {
-//        if (viewModel.isClauncherDefault.value != true) return
-//        if (prefs.rateClicked.not() && prefs.toShowHintCounter > Constants.HINT_RATE_US && prefs.toShowHintCounter < Constants.HINT_RATE_US + 10)
-//            binding.rate.setCompoundDrawablesWithIntrinsicBounds(0, android.R.drawable.arrow_down_float, 0, 0)
-//    }
 
     override fun onDestroyView() {
         super.onDestroyView()

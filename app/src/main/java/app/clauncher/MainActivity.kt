@@ -1,7 +1,6 @@
 package app.clauncher
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
@@ -14,7 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
-import androidx.navigation.Navigation
+import androidx.navigation.findNavController
 import app.clauncher.data.Constants
 import app.clauncher.data.Prefs
 import app.clauncher.databinding.ActivityMainBinding
@@ -24,7 +23,6 @@ import app.clauncher.helper.isTablet
 import app.clauncher.helper.resetLauncherViaFakeActivity
 import app.clauncher.helper.setPlainWallpaper
 import app.clauncher.helper.showLauncherSelector
-import androidx.navigation.findNavController
 
 class MainActivity : AppCompatActivity() {
 
@@ -36,6 +34,7 @@ class MainActivity : AppCompatActivity() {
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         if (navController.currentDestination?.id != R.id.mainFragment) {
+            @Suppress("DEPRECATION")
             super.onBackPressed()
         }
     }

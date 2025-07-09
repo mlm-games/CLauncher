@@ -39,7 +39,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     // View state management?
     sealed class ViewState {
-        data class Success(val data: Any) : ViewState()
         data class Error(val message: String) : ViewState()
     }
 
@@ -171,9 +170,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val component = ComponentName(appModel.appPackage, appModel.activityClassName ?: "")
                 launcherApps.startMainActivity(component, appModel.user, null, null)
-            } catch (e: SecurityException) {
-                //handleSecurityException(e, appModel)
-            } catch (e: Exception) {
+//            } catch (e: SecurityException) {
+//                handleSecurityException(e, appModel)
+            } catch (_: Exception) {
                 _viewState.postValue(ViewState.Error("Unable to launch ${appModel.appLabel}"))
             }
         }
@@ -190,70 +189,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             hiddenApps.value = getAppsList(appContext, prefs, includeRegularApps = false, includeHiddenApps = true)
         }
     }
-
-//    fun isCLauncherDefault() {
-//        isCLauncherDefault.value = isCLauncherDefault(appContext)
-//    }
-
-//    fun resetDefaultLauncherApp(context: Context) {
-//        resetDefaultLauncher(context)
-//        launcherResetFailed.value = getDefaultLauncherPackage(appContext).contains(".")
-//    }
-
-//    fun setWallpaperWorker() {
-//        val constraints = Constraints.Builder()
-//            .setRequiredNetworkType(NetworkType.CONNECTED)
-//            .build()
-//        val uploadWorkRequest = PeriodicWorkRequestBuilder<WallpaperWorker>(8, TimeUnit.HOURS)
-//            .setBackoffCriteria(BackoffPolicy.LINEAR, 1, TimeUnit.HOURS)
-//            .setConstraints(constraints)
-//            .build()
-//        WorkManager
-//            .getInstance(appContext)
-//            .enqueueUniquePeriodicWork(
-//                Constants.WALLPAPER_WORKER_NAME,
-//                ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
-//                uploadWorkRequest
-//            )
-//    }
-//
-//    fun cancelWallpaperWorker() {
-//        WorkManager.getInstance(appContext).cancelUniqueWork(Constants.WALLPAPER_WORKER_NAME)
-//        prefs.dailyWallpaperUrl = ""
-//        prefs.dailyWallpaper = false
-//    }
-
     fun updateHomeAlignment(gravity: Int) {
         prefs.homeAlignment = gravity
         homeAppAlignment.value = prefs.homeAlignment
     }
-
-//    Later try to also show the top three apps used
-//    fun getScreenTimeStats() {
-//        viewModelScope.launch(coroutineExceptionHandler) {
-//            if (!LauncherUtils.hasUsageStatsPermission(appContext)) {
-//                _viewState.postValue(ViewState.Error("Usage stats permission required"))
-//                return@launch
-//            }
-//
-//            getUsageStats()
-//            _viewState.postValue(ViewState.Success("Hi"))
-//        }
-//    }
-//
-//    private suspend fun getUsageStats() = withContext(Dispatchers.IO) {
-//        val calendar = Calendar.getInstance().apply {
-//            set(Calendar.HOUR_OF_DAY, 0)
-//            set(Calendar.MINUTE, 0)
-//            set(Calendar.SECOND, 0)
-//        }
-//
-//        usageStatsManager.queryUsageStats(
-//            UsageStatsManager.INTERVAL_DAILY,
-//            calendar.timeInMillis,
-//            System.currentTimeMillis()
-//        )
-//    }
 
     // Add lifecycle management
     override fun onCleared() {
@@ -262,38 +201,3 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 }
-
-//object LauncherUtils {
-
-//    private const val MINUTE_IN_MILLIS = 60_000L
-//    private const val HOUR_IN_MILLIS = 3_600_000L
-//
-//    fun formatScreenTime(timeInMillis: Long): String = when {
-//        timeInMillis < MINUTE_IN_MILLIS -> "Less than a minute"
-//        timeInMillis < HOUR_IN_MILLIS -> "${timeInMillis / MINUTE_IN_MILLIS}m"
-//        else -> "${timeInMillis / HOUR_IN_MILLIS}h ${(timeInMillis % HOUR_IN_MILLIS) / MINUTE_IN_MILLIS}m"
-//    }
-
-    //    fun hasRequiredPermissions(context: Context): Boolean {
-//        return hasUsageStatsPermission(context) &&
-//                hasAccessibilityPermission(context)
-//    }
-
-//    fun hasUsageStatsPermission(context: Context): Boolean {
-//        val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
-//
-//        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//            appOps.unsafeCheckOpNoThrow(
-//                AppOpsManager.OPSTR_GET_USAGE_STATS,
-//                android.os.Process.myUid(),
-//                context.packageName
-//            ) == AppOpsManager.MODE_ALLOWED
-//        } else {
-//            appOps.checkOpNoThrow(
-//                AppOpsManager.OPSTR_GET_USAGE_STATS,
-//                android.os.Process.myUid(),
-//                context.packageName
-//            ) == AppOpsManager.MODE_ALLOWED
-//        }
-//    }
-//}

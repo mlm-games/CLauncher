@@ -1,7 +1,6 @@
 package app.clauncher.listener
 
 import android.content.Context
-import android.os.Build
 import android.view.GestureDetector
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
@@ -43,22 +42,11 @@ internal open class OnSwipeTouchListener(c: Context?) : OnTouchListener {
         }
 
         override fun onSingleTapUp(e: MotionEvent): Boolean {
-//            if (doubleTapOn) {
-//                doubleTapOn = false
-//                onTripleClick()
-//            }
             onClick()
             return super.onSingleTapUp(e)
         }
 
         override fun onDoubleTap(e: MotionEvent): Boolean {
-//            doubleTapOn = true
-//            Timer().schedule(Constants.TRIPLE_TAP_DELAY_MS) {
-//                if (doubleTapOn) {
-//                    doubleTapOn = false
-//                    onDoubleClick()
-//                }
-//            }
             onDoubleClick()
             return super.onDoubleTap(e)
         }
@@ -107,7 +95,6 @@ internal open class OnSwipeTouchListener(c: Context?) : OnTouchListener {
     open fun onSwipeDown() {}
     open fun onLongClick() {}
     open fun onDoubleClick() {}
-    open fun onTripleClick() {}
     open fun onClick() {}
 
     init {

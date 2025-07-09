@@ -5,7 +5,7 @@ plugins {
 
 android {
 
-    compileSdk 35
+    compileSdk 36
 
     splits {
         abi {
@@ -32,7 +32,7 @@ android {
     defaultConfig {
         applicationId 'app.clauncher'
         minSdkVersion 24
-        targetSdkVersion 35
+        targetSdkVersion 36
         versionCode 430
         versionName "v5.2.11"
 

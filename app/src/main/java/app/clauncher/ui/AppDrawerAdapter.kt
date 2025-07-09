@@ -113,7 +113,7 @@ class AppDrawerAdapter(
                 && autoLaunch
                 && isBangSearch.not()
                 && flag == Constants.FLAG_LAUNCH_APP
-                && appFilteredList.size > 0
+                && appFilteredList.isNotEmpty()
             ) appClickListener(appFilteredList[0])
         } catch (e: Exception) {
             e.printStackTrace()

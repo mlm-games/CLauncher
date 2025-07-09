@@ -2,7 +2,6 @@ package app.clauncher.ui
 
 import android.app.admin.DevicePolicyManager
 import android.content.Context
-import android.content.res.Configuration
 import android.os.BatteryManager
 import android.os.Build
 import android.os.Bundle
@@ -11,13 +10,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
-import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
-import androidx.core.view.setPadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
@@ -27,8 +23,6 @@ import app.clauncher.data.AppModel
 import app.clauncher.data.Constants
 import app.clauncher.data.Prefs
 import app.clauncher.databinding.FragmentHomeBinding
-import app.clauncher.helper.appUsagePermissionGranted
-import app.clauncher.helper.dpToPx
 import app.clauncher.helper.expandNotificationDrawer
 import app.clauncher.helper.getUserHandleFromString
 import app.clauncher.helper.isPackageInstalled
@@ -452,10 +446,10 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         requireActivity().runOnUiThread {
             try {
                 deviceManager.lockNow()
-            } catch (e: SecurityException) {
+            } catch (_: SecurityException) {
                 requireContext().showToast(getString(R.string.please_turn_on_double_tap_to_unlock), Toast.LENGTH_LONG)
                 findNavController().navigate(R.id.action_mainFragment_to_settingsFragment)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 requireContext().showToast(getString(R.string.launcher_failed_to_lock_device), Toast.LENGTH_LONG)
                 prefs.lockModeOn = false
             }
