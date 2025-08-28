@@ -9,14 +9,20 @@ android {
 
     splits {
         abi {
-            enable false
+            // Toggleable from the command line:
+            //   -PenableApkSplits=true|false
+            //   -PincludeUniversalApk=true|false
+            def enableSplits = project.findProperty("enableApkSplits")?.toString()?.toBoolean() ?: false
+            def universal = project.findProperty("includeUniversalApk")?.toString()?.toBoolean() ?: true
+
+            enable enableSplits
             reset()
             if (project.hasProperty('targetAbi')) {
                 include project.property('targetAbi')
             } else {
                 include "arm64-v8a", "armeabi-v7a", "x86", "x86_64"
             }
-            universalApk true
+            universalApk universal
         }
     }
 
@@ -48,8 +54,9 @@ android {
             keyPassword System.getenv("KEY_PASSWORD")
             v1SigningEnabled true
             v2SigningEnabled true
-            enableV3Signing false
-            enableV4Signing false
+            
+            v3SigningEnabled false
+            v4SigningEnabled false
         }
     }
 
@@ -75,7 +82,7 @@ android {
         viewBinding = true
         buildConfig = true
     }
-    
+
     namespace 'app.clauncher'
 
     aaptOptions {
