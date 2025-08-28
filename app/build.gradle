@@ -11,7 +11,7 @@ android {
         abi {
             // Toggleable from the command line:
             //   -PenableApkSplits=true|false
-            //   -PincludeUniversalApk=true|false
+            //   Similarly for universal apk
             def enableSplits = project.findProperty("enableApkSplits")?.toString()?.toBoolean() ?: false
             def universal = project.findProperty("includeUniversalApk")?.toString()?.toBoolean() ?: true
 
