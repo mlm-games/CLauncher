@@ -2,7 +2,7 @@
 appcompat = "1.7.1"
 coreKtx = "1.17.0"
 gradle = "8.13.0"
-kotlinStdlib = "2.2.20"
+kotlinStdlib = "2.2.21"
 lifecycleExtensions = "2.2.0"
 lifecycleViewmodelKtx = "2.9.4"
 material = "1.13.0"
