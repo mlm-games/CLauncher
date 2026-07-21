@@ -1,0 +1,36 @@
+name: Android App Releases
+
+on:
+  workflow_dispatch:
+    inputs:
+      upload_releases:
+        description: 'Upload releases'
+        required: true
+        default: 'true'
+        type: boolean
+      mark_prerelease:
+        description: 'Mark as prerelease'
+        required: true
+        default: 'false'
+        type: boolean
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    uses: mlm-games/ci/.github/workflows/android-release.yml@v1
+    with:
+      app-name: 'CLauncher'
+      app-slug: 'clauncher'
+      application-id: 'app.clauncher'
+      java-version: '21'
+      java-distribution: 'corretto'
+      build-gradle-path: 'app/build.gradle'
+    secrets:
+      KEYSTORE: ${{ secrets.KEYSTORE }}
+      KEYSTORE_PASSPHRASE: ${{ secrets.KEYSTORE_PASSPHRASE }}
+      STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}

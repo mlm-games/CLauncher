@@ -1,0 +1,12 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  ci:
+    uses: mlm-games/ci/.github/workflows/android-ci.yml@v1
+    with:
+      java-version: "21"
+      java-distribution: "corretto"
