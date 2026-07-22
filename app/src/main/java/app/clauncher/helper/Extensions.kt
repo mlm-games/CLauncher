@@ -52,6 +52,7 @@ fun Context.resetDefaultLauncher() {
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
             PackageManager.DONT_KILL_APP
         )
+        @Suppress("UnsafeImplicitIntentLaunch")
         val selector = Intent(Intent.ACTION_MAIN)
         selector.addCategory(Intent.CATEGORY_HOME)
         startActivity(selector)

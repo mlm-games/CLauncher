@@ -31,6 +31,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: MainViewModel
     private lateinit var binding: ActivityMainBinding
 
+    @Suppress("GestureBackNavigation")
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         if (navController.currentDestination?.id != R.id.mainFragment) {
