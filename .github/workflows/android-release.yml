@@ -13,6 +13,16 @@ on:
         required: true
         default: 'false'
         type: boolean
+      bump_type:
+        description: 'Version bump type'
+        required: true
+        default: "patch"
+        type: choice
+        options:
+          - none
+          - patch
+          - minor
+          - major
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -28,6 +38,7 @@ jobs:
       java-version: '21'
       java-distribution: 'corretto'
       build-gradle-path: 'app/build.gradle'
+      bump-type: ${{ inputs.bump_type }}
     secrets:
       KEYSTORE: ${{ secrets.KEYSTORE }}
       KEYSTORE_PASSPHRASE: ${{ secrets.KEYSTORE_PASSPHRASE }}
