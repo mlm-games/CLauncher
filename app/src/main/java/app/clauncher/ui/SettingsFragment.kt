@@ -65,7 +65,7 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
         componentName = ComponentName(requireContext(), DeviceAdmin::class.java)
         checkAdminPermission()
 
-        binding.mainActivityLayout.applySystemBarInsets()
+        binding.mainActivityLayout.applySystemBarInsets(applyTop = false, applyBottom = false)
         binding.homeAppsNum.text = prefs.homeAppsNum.toString()
         populateAppVisibilityText()
         populateKeyboardText()

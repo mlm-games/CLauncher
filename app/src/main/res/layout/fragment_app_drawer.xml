@@ -8,6 +8,7 @@
     android:background="?attr/primaryShadeDarkColor">
 
     <LinearLayout
+        android:id="@+id/searchHeaderLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="88dp"

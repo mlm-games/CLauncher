@@ -19,6 +19,7 @@ import app.clauncher.data.Constants
 import app.clauncher.data.Prefs
 import app.clauncher.databinding.FragmentAppDrawerBinding
 import app.clauncher.helper.applySystemBarInsets
+import app.clauncher.helper.applySystemBarMargins
 import app.clauncher.helper.hideKeyboard
 import app.clauncher.helper.isEinkDisplay
 import app.clauncher.helper.isSystemApp
@@ -59,7 +60,9 @@ class AppDrawerFragment : Fragment() {
             flag = it.getInt(Constants.Key.FLAG, Constants.FLAG_LAUNCH_APP)
             canRename = it.getBoolean(Constants.Key.RENAME, false)
         }
-        binding.root.applySystemBarInsets(consumeIme = true)
+        binding.root.applySystemBarInsets(applyTop = false, applyBottom = false)
+        binding.searchHeaderLayout.applySystemBarMargins(applyTop = true, applyBottom = false, applyLeft = false, applyRight = false)
+        binding.recyclerView.applySystemBarMargins(applyTop = false, applyBottom = true, applyLeft = false, applyRight = false)
         initViews()
         initSearch()
         initAdapter()

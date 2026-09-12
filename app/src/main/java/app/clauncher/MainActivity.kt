@@ -14,7 +14,6 @@ import androidx.navigation.findNavController
 import app.clauncher.data.Constants
 import app.clauncher.data.Prefs
 import app.clauncher.databinding.ActivityMainBinding
-import app.clauncher.helper.applySystemBarInsets
 import app.clauncher.helper.isDarkThemeOn
 import app.clauncher.helper.isEinkDisplay
 import app.clauncher.helper.resetLauncherViaFakeActivity
@@ -54,10 +53,6 @@ class MainActivity : AppCompatActivity() {
         setupEdgeToEdge()
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        binding.mainActivityLayout.applySystemBarInsets(
-            applyTop = false,
-            applyBottom = false,
-        )
 
         navController = this.findNavController(R.id.nav_host_fragment)
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]

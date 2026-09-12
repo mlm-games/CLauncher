@@ -23,6 +23,7 @@ import app.clauncher.data.Constants
 import app.clauncher.data.Prefs
 import app.clauncher.databinding.FragmentHomeBinding
 import app.clauncher.helper.applySystemBarInsets
+import app.clauncher.helper.applySystemBarMargins
 import app.clauncher.helper.expandNotificationDrawer
 import app.clauncher.helper.getUserHandleFromString
 import app.clauncher.helper.isPackageInstalled
@@ -61,7 +62,12 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
 
         deviceManager = context?.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
 
-        binding.mainLayout.applySystemBarInsets()
+        binding.mainLayout.applySystemBarInsets(applyTop = false, applyBottom = false)
+        binding.dateTimeLayout.applySystemBarMargins(applyTop = true, applyBottom = false, applyLeft = false, applyRight = false)
+        binding.tvScreenTime.applySystemBarMargins(applyTop = true, applyBottom = false, applyLeft = false, applyRight = false)
+        binding.homeAppsLayout.applySystemBarInsets(applyTop = false)
+        binding.firstRunTips.applySystemBarMargins(applyTop = false, applyBottom = true, applyLeft = false, applyRight = false)
+        binding.setDefaultLauncher.applySystemBarMargins(applyTop = false, applyBottom = true, applyLeft = false, applyRight = false)
         initObservers()
         setHomeAlignment(prefs.homeAlignment)
         initSwipeTouchListener()
