@@ -1,21 +1,23 @@
 [versions]
+activityKtx = "1.13.0"
 appcompat = "1.8.0"
 coreKtx = "1.19.0"
-gradle = "9.3.1"
+gradle = "9.4.0"
 kotlinStdlib = "2.4.20"
-lifecycleExtensions = "2.2.0"
 lifecycleViewmodelKtx = "2.11.0"
+lifecycleRuntimeKtx = "2.11.0"
 material = "1.14.0"
 navigationFragmentKtx = "2.10.0"
 recyclerview = "1.4.0"
 workRuntimeKtx = "2.11.2"
 [libraries]
+activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlinStdlib" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlinStdlib" }
-lifecycle-extensions = { module = "androidx.lifecycle:lifecycle-extensions", version.ref = "lifecycleExtensions" }
+lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
 navigation-fragment-ktx = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }

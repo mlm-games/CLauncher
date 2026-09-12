@@ -1,14 +1,11 @@
 package app.clauncher
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModelProvider
@@ -17,12 +14,14 @@ import androidx.navigation.findNavController
 import app.clauncher.data.Constants
 import app.clauncher.data.Prefs
 import app.clauncher.databinding.ActivityMainBinding
+import app.clauncher.helper.applySystemBarInsets
 import app.clauncher.helper.isDarkThemeOn
 import app.clauncher.helper.isEinkDisplay
-import app.clauncher.helper.isTablet
 import app.clauncher.helper.resetLauncherViaFakeActivity
 import app.clauncher.helper.setPlainWallpaper
+import app.clauncher.helper.setupEdgeToEdge
 import app.clauncher.helper.showLauncherSelector
+import app.clauncher.helper.updateSystemBarAppearance
 
 class MainActivity : AppCompatActivity() {
 
@@ -52,8 +51,13 @@ class MainActivity : AppCompatActivity() {
         if (isEinkDisplay()) prefs.appTheme = AppCompatDelegate.MODE_NIGHT_NO
         AppCompatDelegate.setDefaultNightMode(prefs.appTheme)
         super.onCreate(savedInstanceState)
+        setupEdgeToEdge()
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.mainActivityLayout.applySystemBarInsets(
+            applyTop = false,
+            applyBottom = false,
+        )
 
         navController = this.findNavController(R.id.nav_host_fragment)
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
@@ -67,9 +71,7 @@ class MainActivity : AppCompatActivity() {
         //initClickListeners()
         initObservers(viewModel)
         viewModel.getAppList()
-        setupOrientation()
-
-        window.addFlags(FLAG_LAYOUT_NO_LIMITS)
+        updateSystemBarAppearance(isDarkThemeOn())
     }
 
     override fun onStop() {
@@ -86,8 +88,7 @@ class MainActivity : AppCompatActivity() {
         super.onUserLeaveHint()
     }
 
-    override fun onNewIntent(intent: Intent?) {
-        intent ?: return super.onNewIntent(intent)
+    override fun onNewIntent(intent: Intent) {
         // Check if this is an app switch intent
         if (intent.action != Intent.ACTION_MAIN &&
             intent.hasCategory(Intent.CATEGORY_HOME)) {
@@ -103,6 +104,7 @@ class MainActivity : AppCompatActivity() {
             AppCompatDelegate.setDefaultNightMode(prefs.appTheme)
             updatePlainWallpaper()
         }
+        updateSystemBarAppearance(isDarkThemeOn())
     }
 
     private fun updatePlainWallpaper() {
@@ -230,14 +232,6 @@ class MainActivity : AppCompatActivity() {
 //            }
 //        }
 //    }
-
-    @SuppressLint("SourceLockedOrientationActivity")
-    private fun setupOrientation() {
-        if (isTablet(this) || Build.VERSION.SDK_INT == Build.VERSION_CODES.O)
-            return
-        // In Android 8.0, windowIsTranslucent cannot be used with screenOrientation=portrait
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-    }
 
     private fun backToHomeScreen() {
         //binding.messageLayout.visibility = View.GONE

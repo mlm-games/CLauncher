@@ -9,7 +9,6 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowInsets
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.os.bundleOf
@@ -23,6 +22,7 @@ import app.clauncher.data.AppModel
 import app.clauncher.data.Constants
 import app.clauncher.data.Prefs
 import app.clauncher.databinding.FragmentHomeBinding
+import app.clauncher.helper.applySystemBarInsets
 import app.clauncher.helper.expandNotificationDrawer
 import app.clauncher.helper.getUserHandleFromString
 import app.clauncher.helper.isPackageInstalled
@@ -31,6 +31,7 @@ import app.clauncher.helper.openCalendar
 import app.clauncher.helper.openCameraApp
 import app.clauncher.helper.openDialerApp
 import app.clauncher.helper.openSearch
+import app.clauncher.helper.setStatusBarVisibleCompat
 import app.clauncher.helper.showToast
 import app.clauncher.listener.OnSwipeTouchListener
 import app.clauncher.listener.ViewSwipeTouchListener
@@ -60,6 +61,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
 
         deviceManager = context?.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
 
+        binding.mainLayout.applySystemBarInsets()
         initObservers()
         setHomeAlignment(prefs.homeAlignment)
         initSwipeTouchListener()
@@ -457,24 +459,11 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
     }
 
     private fun showStatusBar() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-            requireActivity().window.insetsController?.show(WindowInsets.Type.statusBars())
-        else
-            @Suppress("DEPRECATION", "InlinedApi")
-            requireActivity().window.decorView.apply {
-                systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            }
+        requireActivity().setStatusBarVisibleCompat(true)
     }
 
     private fun hideStatusBar() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-            requireActivity().window.insetsController?.hide(WindowInsets.Type.statusBars())
-        else {
-            @Suppress("DEPRECATION")
-            requireActivity().window.decorView.apply {
-                systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE or View.SYSTEM_UI_FLAG_FULLSCREEN
-            }
-        }
+        requireActivity().setStatusBarVisibleCompat(false)
     }
 
     private fun showLongPressToast() = requireContext().showToast(getString(R.string.long_press_to_select_app))

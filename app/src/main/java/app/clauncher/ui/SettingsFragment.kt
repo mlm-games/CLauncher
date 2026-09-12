@@ -13,7 +13,6 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowInsets
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
@@ -27,12 +26,14 @@ import app.clauncher.data.Prefs
 import app.clauncher.databinding.FragmentSettingsBinding
 import app.clauncher.helper.animateAlpha
 import app.clauncher.helper.appUsagePermissionGranted
+import app.clauncher.helper.applySystemBarInsets
 import app.clauncher.helper.getColorFromAttr
 import app.clauncher.helper.isAccessServiceEnabled
 import app.clauncher.helper.isDarkThemeOn
 import app.clauncher.helper.openAppInfo
 import app.clauncher.helper.openUrl
 import app.clauncher.helper.setPlainWallpaper
+import app.clauncher.helper.setStatusBarVisibleCompat
 import app.clauncher.helper.showToast
 import app.clauncher.listener.DeviceAdmin
 
@@ -64,6 +65,7 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
         componentName = ComponentName(requireContext(), DeviceAdmin::class.java)
         checkAdminPermission()
 
+        binding.mainActivityLayout.applySystemBarInsets()
         binding.homeAppsNum.text = prefs.homeAppsNum.toString()
         populateAppVisibilityText()
         populateKeyboardText()
@@ -308,24 +310,11 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
     }
 
     private fun showStatusBar() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-            requireActivity().window.insetsController?.show(WindowInsets.Type.statusBars())
-        else
-            @Suppress("DEPRECATION", "InlinedApi")
-            requireActivity().window.decorView.apply {
-                systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            }
+        requireActivity().setStatusBarVisibleCompat(true)
     }
 
     private fun hideStatusBar() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-            requireActivity().window.insetsController?.hide(WindowInsets.Type.statusBars())
-        else {
-            @Suppress("DEPRECATION")
-            requireActivity().window.decorView.apply {
-                systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE or View.SYSTEM_UI_FLAG_FULLSCREEN
-            }
-        }
+        requireActivity().setStatusBarVisibleCompat(false)
     }
 
     private fun showHiddenApps() {

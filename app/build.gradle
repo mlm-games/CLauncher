@@ -33,8 +33,8 @@ android {
         applicationId 'app.clauncher'
         minSdkVersion 24
         targetSdkVersion 37
-        versionCode 440
-        versionName "v5.2.11"
+        versionCode 460
+        versionName "v5.2.12"
 
         resourceConfigurations += ["en", "ar", "de", "es-rES", "es-rUS", "fr", "hr", "hu", "in", "it", "ja", "pl", "pt-rBR", "ru-rRU", "sv", "tr", "uk", "zh"]
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -48,7 +48,7 @@ android {
             keyPassword System.getenv("KEY_PASSWORD")
             v1SigningEnabled true
             v2SigningEnabled true
-            
+
             enableV3Signing false
             enableV4Signing false
         }
@@ -98,11 +98,12 @@ dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation libs.kotlin.stdlib
     implementation libs.core.ktx
+    implementation libs.activity.ktx
     implementation libs.appcompat
     implementation libs.recyclerview
 
     // Android lifecycle
-    implementation libs.lifecycle.extensions
+    implementation libs.lifecycle.runtime.ktx
     implementation libs.lifecycle.viewmodel.ktx
 
     // Navigation
