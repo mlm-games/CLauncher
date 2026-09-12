@@ -291,17 +291,20 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
                 valid.add(w)
                 val hostView = host.createView(requireContext(), w.appWidgetId, info)
                 val heightPx = (w.heightDp * resources.displayMetrics.density).toInt()
-                hostView.layoutParams = android.widget.LinearLayout.LayoutParams(
+                val holder = app.clauncher.ui.views.WidgetHolderLayout(requireContext())
+                holder.layoutParams = android.widget.LinearLayout.LayoutParams(
                     android.view.ViewGroup.LayoutParams.MATCH_PARENT, heightPx
                 ).apply {
                     topMargin = 8.dpToPx()
                     bottomMargin = 8.dpToPx()
                 }
-                hostView.setOnLongClickListener {
-                    showWidgetOptions(w)
-                    true
-                }
-                container.addView(hostView)
+                holder.onWidgetLongPress = { showWidgetOptions(w) }
+                hostView.layoutParams = android.widget.FrameLayout.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                )
+                holder.addView(hostView)
+                container.addView(holder)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
