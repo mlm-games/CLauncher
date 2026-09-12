@@ -7,6 +7,8 @@ import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.TextView
 import androidx.appcompat.widget.SearchView
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -18,8 +20,6 @@ import app.clauncher.R
 import app.clauncher.data.Constants
 import app.clauncher.data.Prefs
 import app.clauncher.databinding.FragmentAppDrawerBinding
-import app.clauncher.helper.applySystemBarInsets
-import app.clauncher.helper.applySystemBarMargins
 import app.clauncher.helper.dpToPx
 import app.clauncher.helper.hideKeyboard
 import app.clauncher.helper.isEinkDisplay
@@ -40,6 +40,8 @@ class AppDrawerFragment : Fragment() {
 
     private var flag = Constants.FLAG_LAUNCH_APP
     private var canRename = false
+    private var statusBarInset = 0
+    private var navBarInset = 0
 
     private val viewModel: MainViewModel by activityViewModels()
     private var _binding: FragmentAppDrawerBinding? = null
@@ -61,9 +63,23 @@ class AppDrawerFragment : Fragment() {
             flag = it.getInt(Constants.Key.FLAG, Constants.FLAG_LAUNCH_APP)
             canRename = it.getBoolean(Constants.Key.RENAME, false)
         }
-        binding.root.applySystemBarInsets(applyTop = false, applyBottom = false)
-        binding.searchHeaderLayout.applySystemBarMargins(applyTop = true, applyBottom = false, applyLeft = false, applyRight = false)
-        binding.recyclerView.applySystemBarMargins(applyTop = false, applyBottom = true, applyLeft = false, applyRight = false)
+        val initialRootLeft = binding.root.paddingLeft
+        val initialRootRight = binding.root.paddingRight
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            v.setPadding(
+                maxOf(initialRootLeft, bars.left),
+                v.paddingTop,
+                maxOf(initialRootRight, bars.right),
+                v.paddingBottom,
+            )
+            statusBarInset = bars.top
+            navBarInset = bars.bottom
+            applySearchLayout()
+            insets
+        }
         initViews()
         initSearch()
         initAdapter()
@@ -99,15 +115,15 @@ class AppDrawerFragment : Fragment() {
                 if (isBottom) {
                     searchParams.gravity = android.view.Gravity.BOTTOM
                     searchParams.topMargin = 0
-                    searchParams.bottomMargin = 88.dpToPx()
-                    recyclerParams.topMargin = 52.dpToPx()
-                    recyclerParams.bottomMargin = 180.dpToPx()
+                    searchParams.bottomMargin = maxOf(88.dpToPx(), navBarInset)
+                    recyclerParams.topMargin = maxOf(52.dpToPx(), statusBarInset)
+                    recyclerParams.bottomMargin = maxOf(180.dpToPx(), navBarInset)
                 } else {
                     searchParams.gravity = android.view.Gravity.TOP
-                    searchParams.topMargin = 88.dpToPx()
+                    searchParams.topMargin = maxOf(88.dpToPx(), statusBarInset)
                     searchParams.bottomMargin = 0
-                    recyclerParams.topMargin = 180.dpToPx()
-                    recyclerParams.bottomMargin = 24.dpToPx()
+                    recyclerParams.topMargin = maxOf(180.dpToPx(), statusBarInset)
+                    recyclerParams.bottomMargin = maxOf(24.dpToPx(), navBarInset)
                 }
                 binding.searchHeaderLayout.layoutParams = searchParams
                 binding.recyclerView.layoutParams = recyclerParams
