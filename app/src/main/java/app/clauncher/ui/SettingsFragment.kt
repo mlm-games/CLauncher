@@ -78,9 +78,12 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
         populateDateTime()
         populateSwipeApps()
         populateSwipeDownAction()
+        populateSearchLayout()
+        populateTextColor()
         initClickListeners()
         initObservers()
         populateSystemFontText()
+        listenForWidgetPicked()
     }
 
     override fun onClick(view: View) {
@@ -89,6 +92,14 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
         binding.appThemeSelectLayout.visibility = View.GONE
         binding.swipeDownSelectLayout.visibility = View.GONE
         binding.textSizesLayout.visibility = View.GONE
+        try {
+            binding.searchBarPositionSelectLayout.visibility = View.GONE
+        } catch (_: Exception) {
+        }
+        try {
+            binding.searchAlignmentSelectLayout.visibility = View.GONE
+        } catch (_: Exception) {
+        }
         if (view.id != R.id.alignmentBottom)
             binding.alignmentSelectLayout.visibility = View.GONE
 
@@ -149,6 +160,18 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
             R.id.swipeDownAction -> binding.swipeDownSelectLayout.visibility = View.VISIBLE
             R.id.notifications -> updateSwipeDownAction(Constants.SwipeDownAction.NOTIFICATIONS)
             R.id.search -> updateSwipeDownAction(Constants.SwipeDownAction.SEARCH)
+
+            R.id.searchBarPosition -> binding.searchBarPositionSelectLayout.visibility = View.VISIBLE
+            R.id.searchBarTop -> updateSearchBarPosition(Constants.SearchBarPosition.TOP)
+            R.id.searchBarBottom -> updateSearchBarPosition(Constants.SearchBarPosition.BOTTOM)
+            R.id.searchResultsAlignment -> binding.searchAlignmentSelectLayout.visibility = View.VISIBLE
+            R.id.searchAlignLeft -> updateSearchResultsAlignment(Constants.SearchResultsAlignment.LEFT)
+            R.id.searchAlignCenter -> updateSearchResultsAlignment(Constants.SearchResultsAlignment.CENTER)
+            R.id.searchAlignRight -> updateSearchResultsAlignment(Constants.SearchResultsAlignment.RIGHT)
+            R.id.reverseSearchResults -> toggleReverseSearchResults()
+            R.id.useCustomTextColor -> toggleCustomTextColor()
+            R.id.textColorValue -> showColorPicker()
+            R.id.addWidget -> openWidgetPicker()
         }
     }
 
@@ -223,6 +246,18 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
         binding.textSize5.setOnClickListener(this)
         binding.textSize6.setOnClickListener(this)
         binding.textSize7.setOnClickListener(this)
+
+        binding.searchBarPosition.setOnClickListener(this)
+        binding.searchBarTop.setOnClickListener(this)
+        binding.searchBarBottom.setOnClickListener(this)
+        binding.searchResultsAlignment.setOnClickListener(this)
+        binding.searchAlignLeft.setOnClickListener(this)
+        binding.searchAlignCenter.setOnClickListener(this)
+        binding.searchAlignRight.setOnClickListener(this)
+        binding.reverseSearchResults.setOnClickListener(this)
+        binding.useCustomTextColor.setOnClickListener(this)
+        binding.textColorValue.setOnClickListener(this)
+        binding.addWidget.setOnClickListener(this)
 
         binding.alignment.setOnLongClickListener(this)
         binding.swipeLeftApp.setOnLongClickListener(this)
@@ -570,6 +605,114 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
             R.id.action_settingsFragment_to_appListFragment,
             bundleOf(Constants.Key.FLAG to flag)
         )
+    }
+
+
+    private fun populateSearchLayout() {
+        binding.searchBarPosition.text = getString(
+            if (prefs.searchBarPosition == Constants.SearchBarPosition.BOTTOM) R.string.bottom
+            else R.string.top
+        )
+        binding.searchResultsAlignment.text = getString(
+            when (prefs.searchResultsAlignment) {
+                Constants.SearchResultsAlignment.CENTER -> R.string.center
+                Constants.SearchResultsAlignment.RIGHT -> R.string.right
+                Constants.SearchResultsAlignment.LEFT -> R.string.left
+                else -> when (prefs.appLabelAlignment) {
+                    Gravity.CENTER -> R.string.center
+                    Gravity.END -> R.string.right
+                    else -> R.string.left
+                }
+            }
+        )
+        binding.reverseSearchResults.text = getString(
+            if (prefs.reverseSearchResults) R.string.on else R.string.off
+        )
+    }
+
+    private fun updateSearchBarPosition(position: Int) {
+        prefs.searchBarPosition = position
+        binding.searchBarPositionSelectLayout.visibility = View.GONE
+        populateSearchLayout()
+    }
+
+    private fun updateSearchResultsAlignment(alignment: Int) {
+        prefs.searchResultsAlignment = alignment
+        prefs.appLabelAlignment = when (alignment) {
+            Constants.SearchResultsAlignment.CENTER -> Gravity.CENTER
+            Constants.SearchResultsAlignment.RIGHT -> Gravity.END
+            else -> Gravity.START
+        }
+        binding.searchAlignmentSelectLayout.visibility = View.GONE
+        populateSearchLayout()
+    }
+
+    private fun toggleReverseSearchResults() {
+        prefs.reverseSearchResults = !prefs.reverseSearchResults
+        populateSearchLayout()
+    }
+
+
+    private fun populateTextColor() {
+        binding.useCustomTextColor.text = getString(
+            if (prefs.useCustomTextColor) R.string.on else R.string.off
+        )
+        binding.textColorValue.text = getString(
+            if (prefs.useCustomTextColor && prefs.textColor != 0) R.string.custom_color
+            else R.string.theme_default
+        )
+    }
+
+    private fun toggleCustomTextColor() {
+        prefs.useCustomTextColor = !prefs.useCustomTextColor
+        populateTextColor()
+        viewModel.refreshHome(false)
+    }
+
+    private fun showColorPicker() {
+        app.clauncher.ui.dialogs.ColorPickerDialog(
+            requireContext(),
+            prefs.textColor
+        ) { color ->
+            prefs.textColor = color
+            prefs.useCustomTextColor = true
+            populateTextColor()
+            viewModel.refreshHome(false)
+        }.show()
+    }
+
+
+    private fun openWidgetPicker() {
+        findNavController().navigate(R.id.action_settingsFragment_to_widgetPicker)
+    }
+
+    private fun listenForWidgetPicked() {
+        parentFragmentManager.setFragmentResultListener("widgetPicked", viewLifecycleOwner) { _, bundle ->
+            val flattened = bundle.getString("provider") ?: return@setFragmentResultListener
+            bindPickedWidget(flattened)
+        }
+        try {
+            findNavController().currentBackStackEntry?.savedStateHandle
+                ?.getLiveData<String>("widgetProvider")
+                ?.observe(viewLifecycleOwner) { flattened ->
+                    if (!flattened.isNullOrBlank()) {
+                        bindPickedWidget(flattened)
+                        findNavController().currentBackStackEntry?.savedStateHandle
+                            ?.remove<String>("widgetProvider")
+                    }
+                }
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun bindPickedWidget(flattened: String) {
+        try {
+            val provider = android.content.ComponentName.unflattenFromString(flattened)
+                ?: return
+            (activity as? app.clauncher.MainActivity)?.requestBindWidget(provider)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     override fun onDestroyView() {

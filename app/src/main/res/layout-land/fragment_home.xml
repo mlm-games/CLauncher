@@ -74,6 +74,13 @@
         android:orientation="vertical"
         android:paddingVertical="@dimen/home_app_padding_vertical">
 
+        <LinearLayout
+            android:id="@+id/widgetContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="8dp" />
+
         <TextView
             android:id="@+id/homeApp1"
             style="@style/TextLarge"

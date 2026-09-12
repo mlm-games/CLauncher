@@ -74,6 +74,13 @@
         android:paddingTop="112dp"
         android:paddingBottom="48dp">
 
+        <LinearLayout
+            android:id="@+id/widgetContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="8dp" />
+
         <app.clauncher.ui.views.SwipeableTextView
             android:id="@+id/homeApp1"
             style="@style/TextLarge"

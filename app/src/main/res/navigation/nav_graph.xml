@@ -53,6 +53,18 @@
             app:exitAnim="@anim/fade_exit"
             app:popEnterAnim="@anim/fade_enter"
             app:popExitAnim="@anim/fade_exit" />
+        <action
+            android:id="@+id/action_settingsFragment_to_widgetPicker"
+            app:destination="@id/widgetPickerFragment"
+            app:enterAnim="@anim/fade_enter"
+            app:exitAnim="@anim/fade_exit"
+            app:popEnterAnim="@anim/fade_enter"
+            app:popExitAnim="@anim/fade_exit" />
     </fragment>
+    <fragment
+        android:id="@+id/widgetPickerFragment"
+        android:name="app.clauncher.ui.WidgetPickerFragment"
+        android:label="widget_picker"
+        tools:layout="@layout/fragment_widget_picker" />
 
 </navigation>

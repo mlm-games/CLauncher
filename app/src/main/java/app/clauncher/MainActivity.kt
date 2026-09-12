@@ -1,11 +1,15 @@
 package app.clauncher
 
+import android.appwidget.AppWidgetHost
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModelProvider
@@ -13,14 +17,18 @@ import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import app.clauncher.data.Constants
 import app.clauncher.data.Prefs
+import app.clauncher.data.WidgetModel
 import app.clauncher.databinding.ActivityMainBinding
+import app.clauncher.helper.WidgetHelper
 import app.clauncher.helper.isDarkThemeOn
 import app.clauncher.helper.isEinkDisplay
 import app.clauncher.helper.resetLauncherViaFakeActivity
 import app.clauncher.helper.setPlainWallpaper
 import app.clauncher.helper.setupEdgeToEdge
 import app.clauncher.helper.showLauncherSelector
+import app.clauncher.helper.showToast
 import app.clauncher.helper.updateSystemBarAppearance
+import java.util.UUID
 
 class MainActivity : AppCompatActivity() {
 
@@ -28,6 +36,17 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navController: NavController
     private lateinit var viewModel: MainViewModel
     private lateinit var binding: ActivityMainBinding
+
+    lateinit var appWidgetHost: AppWidgetHost
+        private set
+    lateinit var appWidgetManager: AppWidgetManager
+        private set
+    lateinit var widgetHelper: WidgetHelper
+        private set
+
+    private var pendingBindWidgetId: Int = -1
+    private var pendingBindProvider: ComponentName? = null
+    private var pendingConfigureWidgetUid: String? = null
 
     @Suppress("GestureBackNavigation")
     @Deprecated("Deprecated in Java")
@@ -56,6 +75,10 @@ class MainActivity : AppCompatActivity() {
 
         navController = this.findNavController(R.id.nav_host_fragment)
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
+
+        appWidgetManager = AppWidgetManager.getInstance(this)
+        appWidgetHost = AppWidgetHost(this, Constants.WidgetRequest.APPWIDGET_HOST_ID)
+        widgetHelper = WidgetHelper(this, appWidgetManager, appWidgetHost)
         if (prefs.firstOpen) {
             viewModel.firstOpen(true)
             prefs.firstOpen = false
@@ -71,7 +94,20 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         backToHomeScreen()
+        try {
+            appWidgetHost.stopListening()
+        } catch (_: Exception) {
+        }
         super.onStop()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        try {
+            if (::appWidgetHost.isInitialized) appWidgetHost.startListening()
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error starting widget host listening", e)
+        }
     }
 
 
@@ -260,6 +296,119 @@ class MainActivity : AppCompatActivity() {
                 if (resultCode == RESULT_OK)
                     resetLauncherViaFakeActivity()
             }
+
+            Constants.WidgetRequest.REQUEST_BIND_WIDGET -> {
+                val widgetId = data?.getIntExtra(
+                    AppWidgetManager.EXTRA_APPWIDGET_ID, pendingBindWidgetId
+                ) ?: pendingBindWidgetId
+                if (resultCode == RESULT_OK && widgetId != -1) {
+                    afterBindSuccess(widgetId)
+                } else {
+                    try {
+                        if (widgetId != -1) appWidgetHost.deleteAppWidgetId(widgetId)
+                    } catch (_: Exception) {
+                    }
+                    showToast(getString(R.string.widget_bind_failed))
+                }
+                pendingBindWidgetId = -1
+                pendingBindProvider = null
+            }
+
+            Constants.WidgetRequest.REQUEST_CONFIGURE_WIDGET -> {
+                val widgetId = data?.getIntExtra(
+                    AppWidgetManager.EXTRA_APPWIDGET_ID, pendingBindWidgetId
+                ) ?: pendingBindWidgetId
+                if (resultCode == RESULT_OK && widgetId != -1) {
+                    val provider = pendingBindProvider
+                        ?: appWidgetManager.getAppWidgetInfo(widgetId)?.provider
+                    if (provider != null) {
+                        addWidgetToPrefs(widgetId, provider)
+                    } else {
+                        try {
+                            appWidgetHost.deleteAppWidgetId(widgetId)
+                        } catch (_: Exception) {
+                        }
+                    }
+                } else if (widgetId != -1) {
+                    try {
+                        appWidgetHost.deleteAppWidgetId(widgetId)
+                    } catch (_: Exception) {
+                    }
+                }
+                pendingBindWidgetId = -1
+                pendingBindProvider = null
+                pendingConfigureWidgetUid = null
+            }
         }
+    }
+
+    fun requestBindWidget(provider: ComponentName) {
+        try {
+            val widgetId = appWidgetHost.allocateAppWidgetId()
+            val bound = appWidgetManager.bindAppWidgetIdIfAllowed(widgetId, provider)
+            if (bound) {
+                afterBindSuccess(widgetId)
+            } else {
+                pendingBindWidgetId = widgetId
+                pendingBindProvider = provider
+                val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
+                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
+                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, provider)
+                }
+                @Suppress("DEPRECATION")
+                startActivityForResult(intent, Constants.WidgetRequest.REQUEST_BIND_WIDGET)
+            }
+        } catch (e: Exception) {
+            Log.e("MainActivity", "requestBindWidget failed", e)
+            showToast(getString(R.string.widget_bind_failed))
+        }
+    }
+
+    private fun afterBindSuccess(widgetId: Int) {
+        pendingBindWidgetId = widgetId
+        pendingBindProvider = appWidgetManager.getAppWidgetInfo(widgetId)?.provider
+        if (widgetHelper.needsConfiguration(widgetId)) {
+            val ok = widgetHelper.startWidgetConfiguration(
+                this, widgetId, Constants.WidgetRequest.REQUEST_CONFIGURE_WIDGET
+            )
+            if (!ok) {
+                pendingBindProvider?.let { addWidgetToPrefs(widgetId, it) }
+                pendingBindWidgetId = -1
+                pendingBindProvider = null
+            }
+        } else {
+            pendingBindProvider?.let { addWidgetToPrefs(widgetId, it) }
+            pendingBindWidgetId = -1
+            pendingBindProvider = null
+        }
+    }
+
+    private fun addWidgetToPrefs(widgetId: Int, provider: ComponentName) {
+        try {
+            val list = WidgetModel.listFromJson(prefs.homeWidgetsJson)
+            list.add(
+                WidgetModel(
+                    uid = UUID.randomUUID().toString(),
+                    appWidgetId = widgetId,
+                    packageName = provider.packageName,
+                    providerClassName = provider.className
+                )
+            )
+            prefs.homeWidgetsJson = WidgetModel.listToJson(list)
+            showToast(getString(R.string.widget_added))
+            viewModel.refreshHome(false)
+        } catch (e: Exception) {
+            Log.e("MainActivity", "addWidgetToPrefs failed", e)
+        }
+    }
+
+    fun reconfigureWidget(widget: WidgetModel) {
+        pendingBindWidgetId = widget.appWidgetId
+        pendingBindProvider = ComponentName(widget.packageName, widget.providerClassName)
+        pendingConfigureWidgetUid = widget.uid
+        val ok = widgetHelper.startWidgetConfiguration(
+            this, widget.appWidgetId, Constants.WidgetRequest.REQUEST_CONFIGURE_WIDGET
+        )
+        if (!ok) showToast(getString(R.string.widget_bind_failed))
     }
 }

@@ -31,6 +31,12 @@ class Prefs(context: Context) {
     private val HIDDEN_APPS_UPDATED = "HIDDEN_APPS_UPDATED"
     private val SWIPE_DOWN_ACTION = "SWIPE_DOWN_ACTION"
     private val TEXT_SIZE_SCALE = "TEXT_SIZE_SCALE"
+    private val SEARCH_BAR_POSITION = "SEARCH_BAR_POSITION"
+    private val SEARCH_RESULTS_ALIGNMENT = "SEARCH_RESULTS_ALIGNMENT"
+    private val REVERSE_SEARCH_RESULTS = "REVERSE_SEARCH_RESULTS"
+    private val TEXT_COLOR = "TEXT_COLOR"
+    private val USE_CUSTOM_TEXT_COLOR = "USE_CUSTOM_TEXT_COLOR"
+    private val HOME_WIDGETS_JSON = "HOME_WIDGETS_JSON"
 
     private val APP_NAME_1 = "APP_NAME_1"
     private val APP_NAME_2 = "APP_NAME_2"
@@ -183,6 +189,42 @@ class Prefs(context: Context) {
     var textSizeScale: Float
         get() = prefs.getFloat(TEXT_SIZE_SCALE, 1.0f)
         set(value) = prefs.edit() { putFloat(TEXT_SIZE_SCALE, value) }
+
+    var searchBarPosition: Int
+        get() = prefs.getInt(SEARCH_BAR_POSITION, 0)
+        set(value) = prefs.edit() { putInt(SEARCH_BAR_POSITION, value) }
+
+    var searchResultsAlignment: Int
+        get() = prefs.getInt(SEARCH_RESULTS_ALIGNMENT, -1)
+        set(value) = prefs.edit() { putInt(SEARCH_RESULTS_ALIGNMENT, value) }
+
+    var reverseSearchResults: Boolean
+        get() = prefs.getBoolean(REVERSE_SEARCH_RESULTS, false)
+        set(value) = prefs.edit() { putBoolean(REVERSE_SEARCH_RESULTS, value) }
+
+    var textColor: Int
+        get() = prefs.getInt(TEXT_COLOR, 0)
+        set(value) = prefs.edit() { putInt(TEXT_COLOR, value) }
+
+    var useCustomTextColor: Boolean
+        get() = prefs.getBoolean(USE_CUSTOM_TEXT_COLOR, false)
+        set(value) = prefs.edit() { putBoolean(USE_CUSTOM_TEXT_COLOR, value) }
+
+    fun getCustomTextColorOrNull(): Int? =
+        if (useCustomTextColor && textColor != 0) textColor else null
+
+    fun getSearchResultsGravity(): Int {
+        return when (searchResultsAlignment) {
+            0 -> android.view.Gravity.START
+            1 -> android.view.Gravity.CENTER
+            2 -> android.view.Gravity.END
+            else -> appLabelAlignment
+        }
+    }
+
+    var homeWidgetsJson: String
+        get() = prefs.getString(HOME_WIDGETS_JSON, "[]").toString()
+        set(value) = prefs.edit() { putString(HOME_WIDGETS_JSON, value) }
 
     var hiddenApps: MutableSet<String>
         get() = prefs.getStringSet(HIDDEN_APPS, mutableSetOf()) as MutableSet<String>

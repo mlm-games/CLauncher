@@ -77,6 +77,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
     override fun onResume() {
         super.onResume()
         populateHomeScreen(false)
+        renderWidgets()
         //viewModel.isClauncherDefault()
         if (prefs.showStatusBar) showStatusBar()
         else hideStatusBar()
@@ -160,6 +161,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
 
         viewModel.refreshHome.observe(viewLifecycleOwner) {
             populateHomeScreen(it)
+            renderWidgets()
         }
 //        viewModel.isClauncherDefault.observe(viewLifecycleOwner, Observer {
 //            if (it != true) {
@@ -241,7 +243,150 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         ).forEach { textView ->
             (textView as TextView).gravity = horizontalGravity
         }
+        applyCustomTextColor()
     }
+
+    private fun applyCustomTextColor() {
+        val custom = prefs.getCustomTextColorOrNull() ?: return
+        try {
+            binding.clock.setTextColor(custom)
+            binding.date.setTextColor(custom)
+            listOf(
+                binding.homeApp1, binding.homeApp2, binding.homeApp3, binding.homeApp4,
+                binding.homeApp5, binding.homeApp6, binding.homeApp7, binding.homeApp8
+            ).forEach { (it as TextView).setTextColor(custom) }
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun renderWidgets() {
+        val container = try {
+            binding.widgetContainer
+        } catch (_: Exception) {
+            return
+        }
+        container.removeAllViews()
+        val activity = activity as? app.clauncher.MainActivity ?: return
+        val widgets = app.clauncher.data.WidgetModel.listFromJson(prefs.homeWidgetsJson)
+        if (widgets.isEmpty()) {
+            container.visibility = View.GONE
+            return
+        }
+        container.visibility = View.VISIBLE
+        val manager = activity.appWidgetManager
+        val host = activity.appWidgetHost
+        val valid = mutableListOf<app.clauncher.data.WidgetModel>()
+        var changed = false
+        widgets.forEach { w ->
+            try {
+                val info = manager.getAppWidgetInfo(w.appWidgetId)
+                if (info == null) {
+                    try {
+                        host.deleteAppWidgetId(w.appWidgetId)
+                    } catch (_: Exception) {
+                    }
+                    changed = true
+                    return@forEach
+                }
+                valid.add(w)
+                val hostView = host.createView(requireContext(), w.appWidgetId, info)
+                val heightPx = (w.heightDp * resources.displayMetrics.density).toInt()
+                hostView.layoutParams = android.widget.LinearLayout.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT, heightPx
+                ).apply {
+                    topMargin = 8.dpToPx()
+                    bottomMargin = 8.dpToPx()
+                }
+                hostView.setOnLongClickListener {
+                    showWidgetOptions(w)
+                    true
+                }
+                container.addView(hostView)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        if (changed) {
+            prefs.homeWidgetsJson = app.clauncher.data.WidgetModel.listToJson(valid)
+        }
+    }
+
+    private fun showWidgetOptions(widget: app.clauncher.data.WidgetModel) {
+        val activity = activity as? app.clauncher.MainActivity ?: return
+        val items = mutableListOf(
+            getString(app.clauncher.R.string.move_up),
+            getString(app.clauncher.R.string.move_down),
+            getString(app.clauncher.R.string.resize_widget),
+            getString(app.clauncher.R.string.remove_widget)
+        )
+        try {
+            if (activity.widgetHelper.isReconfigurable(widget.appWidgetId)) {
+                items.add(2, getString(app.clauncher.R.string.configure_widget))
+            } else if (activity.widgetHelper.hasConfigurationActivity(widget.appWidgetId)) {
+                items.add(2, getString(app.clauncher.R.string.configure_widget))
+            }
+        } catch (_: Exception) {
+        }
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setItems(items.toTypedArray()) { _, which ->
+                when (items[which]) {
+                    getString(app.clauncher.R.string.move_up) -> moveWidget(widget, -1)
+                    getString(app.clauncher.R.string.move_down) -> moveWidget(widget, 1)
+                    getString(app.clauncher.R.string.configure_widget) -> activity.reconfigureWidget(widget)
+                    getString(app.clauncher.R.string.resize_widget) -> showWidgetResize(widget)
+                    else -> removeWidget(widget)
+                }
+            }
+            .show()
+    }
+
+    private fun moveWidget(widget: app.clauncher.data.WidgetModel, delta: Int) {
+        val list = app.clauncher.data.WidgetModel.listFromJson(prefs.homeWidgetsJson)
+        val idx = list.indexOfFirst { it.uid == widget.uid }
+        if (idx == -1) return
+        val to = (idx + delta).coerceIn(0, list.size - 1)
+        if (to == idx) return
+        val item = list.removeAt(idx)
+        list.add(to, item)
+        prefs.homeWidgetsJson = app.clauncher.data.WidgetModel.listToJson(list)
+        renderWidgets()
+    }
+
+    private fun removeWidget(widget: app.clauncher.data.WidgetModel) {
+        try {
+            val activity = activity as? app.clauncher.MainActivity
+            activity?.appWidgetHost?.deleteAppWidgetId(widget.appWidgetId)
+        } catch (_: Exception) {
+        }
+        val list = app.clauncher.data.WidgetModel.listFromJson(prefs.homeWidgetsJson)
+        list.removeAll { it.uid == widget.uid }
+        prefs.homeWidgetsJson = app.clauncher.data.WidgetModel.listToJson(list)
+        requireContext().showToast(getString(app.clauncher.R.string.widget_removed))
+        renderWidgets()
+    }
+
+    private fun showWidgetResize(widget: app.clauncher.data.WidgetModel) {
+        val sizes = listOf(
+            getString(app.clauncher.R.string.widget_size_small) to 80,
+            getString(app.clauncher.R.string.widget_size_medium) to 150,
+            getString(app.clauncher.R.string.widget_size_large) to 240
+        )
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(getString(app.clauncher.R.string.resize_widget))
+            .setItems(sizes.map { it.first }.toTypedArray()) { _, which ->
+                val list = app.clauncher.data.WidgetModel.listFromJson(prefs.homeWidgetsJson)
+                val idx = list.indexOfFirst { it.uid == widget.uid }
+                if (idx != -1) {
+                    list[idx] = list[idx].copy(heightDp = sizes[which].second)
+                    prefs.homeWidgetsJson = app.clauncher.data.WidgetModel.listToJson(list)
+                    renderWidgets()
+                }
+            }
+            .show()
+    }
+
+    private fun Int.dpToPx(): Int =
+        (this * resources.displayMetrics.density).toInt()
 
     private fun populateDateTime() {
         binding.dateTimeLayout.isVisible = prefs.dateTimeVisibility != Constants.DateTime.OFF
@@ -291,6 +436,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
     private fun populateHomeScreen(appCountUpdated: Boolean) {
         if (appCountUpdated) hideHomeApps()
         populateDateTime()
+        applyCustomTextColor()
 
         val homeAppsNum = prefs.homeAppsNum
         if (homeAppsNum == 0) return

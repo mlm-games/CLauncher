@@ -169,6 +169,7 @@ class AppDrawerAdapter(
                         append(if (appModel.isNew == true) " (New)" else "")
                     }
                     appTitle.gravity = appLabelGravity
+                    prefs.getCustomTextColorOrNull()?.let { appTitle.setTextColor(it) }
                     //otherProfileIndicator.isVisible = appModel.user != myUserHandle
 
                     appTitle.setOnClickListener { clickListener(appModel) }

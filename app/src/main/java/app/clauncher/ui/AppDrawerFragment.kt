@@ -20,6 +20,7 @@ import app.clauncher.data.Prefs
 import app.clauncher.databinding.FragmentAppDrawerBinding
 import app.clauncher.helper.applySystemBarInsets
 import app.clauncher.helper.applySystemBarMargins
+import app.clauncher.helper.dpToPx
 import app.clauncher.helper.hideKeyboard
 import app.clauncher.helper.isEinkDisplay
 import app.clauncher.helper.isSystemApp
@@ -75,9 +76,42 @@ class AppDrawerFragment : Fragment() {
             binding.search.queryHint = getString(R.string.hidden_apps)
         else if (flag in Constants.FLAG_SET_HOME_APP_1..Constants.FLAG_SET_CALENDAR_APP)
             binding.search.queryHint = "Please select an app"
+        applySearchLayout()
+    }
+
+    private fun applySearchLayout() {
+        val resultsGravity = prefs.getSearchResultsGravity()
         try {
             val searchTextView = binding.search.findViewById<TextView>(R.id.search_src_text)
-            if (searchTextView != null) searchTextView.gravity = prefs.appLabelAlignment
+            if (searchTextView != null) {
+                searchTextView.gravity = resultsGravity
+                prefs.getCustomTextColorOrNull()?.let { searchTextView.setTextColor(it) }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        try {
+            val isBottom = prefs.searchBarPosition == Constants.SearchBarPosition.BOTTOM
+            val searchParams = binding.searchHeaderLayout.layoutParams as? android.widget.FrameLayout.LayoutParams
+            val recyclerParams = binding.recyclerView.layoutParams as? android.widget.FrameLayout.LayoutParams
+            if (searchParams != null && recyclerParams != null) {
+                if (isBottom) {
+                    searchParams.gravity = android.view.Gravity.BOTTOM
+                    searchParams.topMargin = 0
+                    searchParams.bottomMargin = 88.dpToPx()
+                    recyclerParams.topMargin = 52.dpToPx()
+                    recyclerParams.bottomMargin = 180.dpToPx()
+                } else {
+                    searchParams.gravity = android.view.Gravity.TOP
+                    searchParams.topMargin = 88.dpToPx()
+                    searchParams.bottomMargin = 0
+                    recyclerParams.topMargin = 180.dpToPx()
+                    recyclerParams.bottomMargin = 24.dpToPx()
+                }
+                binding.searchHeaderLayout.layoutParams = searchParams
+                binding.recyclerView.layoutParams = recyclerParams
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -112,7 +146,7 @@ class AppDrawerFragment : Fragment() {
     private fun initAdapter() {
         adapter = AppDrawerAdapter(
             flag,
-            prefs.appLabelAlignment,
+            prefs.getSearchResultsGravity(),
             appClickListener = {
                 if (it.appPackage.isEmpty())
                     return@AppDrawerAdapter
@@ -169,7 +203,14 @@ class AppDrawerFragment : Fragment() {
             }
         )
 
-        linearLayoutManager = object : LinearLayoutManager(requireContext()) {
+        linearLayoutManager = object : LinearLayoutManager(
+            requireContext(),
+            VERTICAL,
+            prefs.reverseSearchResults
+        ) {
+            init {
+                stackFromEnd = prefs.reverseSearchResults
+            }
             override fun scrollVerticallyBy(
                 dx: Int,
                 recycler: Recycler,

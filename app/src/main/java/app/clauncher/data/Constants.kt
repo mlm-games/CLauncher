@@ -32,6 +32,24 @@ object Constants {
         const val NOTIFICATIONS = 2
     }
 
+    object SearchBarPosition {
+        const val TOP = 0
+        const val BOTTOM = 1
+    }
+
+    object SearchResultsAlignment {
+        const val LEFT = 0
+        const val CENTER = 1
+        const val RIGHT = 2
+    }
+
+    object WidgetRequest {
+        const val APPWIDGET_HOST_ID = 1024
+        const val REQUEST_BIND_WIDGET = 1001
+        const val REQUEST_CONFIGURE_WIDGET = 1002
+        const val REQUEST_PICK_WIDGET = 1003
+    }
+
     object TextSize {
         const val ONE = 0.6f
         const val TWO = 0.75f
