@@ -1,0 +1,104 @@
+- chore(deps): bump kotlinStdlib from 2.4.10 to 2.4.20
+- chore(deps): bump androidx.navigation:navigation-fragment-ktx
+- chore(deps): bump gradle-wrapper from 9.7.0 to 9.7.1
+- chore(deps): bump androidx.appcompat:appcompat from 1.7.1 to 1.8.0
+- chore(deps): bump gradle-wrapper from 9.6.1 to 9.7.0
+- chore(deps): bump com.android.tools.build:gradle from 9.3.0 to 9.3.1
+- bump compilesdk/targetsdk to 37
+- chore(deps): bump androidx.core:core-ktx from 1.18.0 to 1.19.0
+- Bump com.android.tools.build:gradle from 9.2.1 to 9.3.0
+- Bump kotlinStdlib from 2.4.0 to 2.4.10
+- Bump gradle-wrapper from 9.6.0 to 9.6.1
+- Bump actions/checkout from 6 to 7 in /.github/workflows
+- Bump gradle-wrapper from 9.5.1 to 9.6.0
+- Bump androidx.lifecycle:lifecycle-viewmodel-ktx from 2.10.0 to 2.11.0
+- Bump kotlinStdlib from 2.3.21 to 2.4.0
+- Bump com.google.android.material:material from 1.13.0 to 1.14.0
+- Bump gradle-wrapper from 9.5.0 to 9.5.1
+- Bump com.android.tools.build:gradle from 9.2.0 to 9.2.1
+- Bump gradle-wrapper from 9.4.1 to 9.5.0
+- Bump kotlinStdlib from 2.3.20 to 2.3.21
+- Bump androidx.navigation:navigation-fragment-ktx from 2.9.7 to 2.9.8
+- Bump com.android.tools.build:gradle from 9.1.1 to 9.2.0
+- Bump dependabot/fetch-metadata from 3.0.0 to 3.1.0 in /.github/workflows
+- Bump softprops/action-gh-release from 2 to 3 in /.github/workflows
+- Bump com.android.tools.build:gradle from 9.1.0 to 9.1.1
+- Bump dependabot/fetch-metadata from 2.5.0 to 3.0.0 in /.github/workflows
+- Bump androidx.work:work-runtime-ktx from 2.11.1 to 2.11.2
+- Bump gradle/actions from 5 to 6 in /.github/workflows
+- Bump gradle-wrapper from 9.4.0 to 9.4.1
+- Bump kotlinStdlib from 2.3.10 to 2.3.20
+- Bump androidx.core:core-ktx from 1.17.0 to 1.18.0
+- Bump gradle-wrapper from 9.3.1 to 9.4.0
+- Bump com.android.tools.build:gradle from 9.0.1 to 9.1.0
+- Bump actions/upload-artifact from 6 to 7 in /.github/workflows
+- Bump com.android.tools.build:gradle from 9.0.0 to 9.0.1
+- Bump kotlinStdlib from 2.3.0 to 2.3.10
+- Bump androidx.navigation:navigation-fragment-ktx from 2.9.6 to 2.9.7
+- Bump gradle-wrapper from 9.3.0 to 9.3.1
+- Bump androidx.work:work-runtime-ktx from 2.11.0 to 2.11.1
+- Bump gradle-wrapper from 9.2.1 to 9.3.0
+- upgrade to agp 9.0.0
+- Bump dependabot/fetch-metadata from 2.4.0 to 2.5.0 in /.github/workflows
+- Bump kotlinStdlib from 2.2.21 to 2.3.0
+- Bump actions/upload-artifact from 5 to 6 in /.github/workflows
+- Bump com.android.tools.build:gradle from 8.13.1 to 8.13.2
+- Bump actions/checkout from 5 to 6 in /.github/workflows
+- add mono icon
+- Bump androidx.lifecycle:lifecycle-viewmodel-ktx from 2.9.4 to 2.10.0
+- Bump com.android.tools.build:gradle from 8.13.0 to 8.13.1
+- Bump androidx.navigation:navigation-fragment-ktx from 2.9.5 to 2.9.6
+- Bump actions/upload-artifact from 4 to 5 in /.github/workflows
+- Bump kotlinStdlib from 2.2.20 to 2.2.21
+- Bump androidx.work:work-runtime-ktx from 2.10.4 to 2.11.0
+- Bump gradle/actions from 4 to 5 in /.github/workflows
+- Bump androidx.navigation:navigation-fragment-ktx from 2.9.4 to 2.9.5
+- Bump androidx.lifecycle:lifecycle-viewmodel-ktx from 2.9.3 to 2.9.4
+- Bump androidx.work:work-runtime-ktx from 2.10.3 to 2.10.4
+- Bump androidx.navigation:navigation-fragment-ktx from 2.9.3 to 2.9.4
+- Bump kotlinStdlib from 2.2.10 to 2.2.20
+- Update android.yml
+- Update android.yml
+- Pin workflow commit to prevent repro mismatches
+- Bump com.google.android.material:material from 1.12.0 to 1.13.0
+- Bump com.android.tools.build:gradle from 8.12.2 to 8.13.0
+- Update android.yml to use prod as default
+- Bump com.android.tools.build:gradle from 8.12.1 to 8.12.2
+- Update build.gradle to use prev. keys
+- Update build.gradle
+- Update build.gradle
+- Update android.yml for aab
+- Bump androidx.lifecycle:lifecycle-viewmodel-ktx from 2.9.2 to 2.9.3
+- Bump actions/setup-java from 4 to 5 in /.github/workflows
+- Bump com.android.tools.build:gradle from 8.12.0 to 8.12.1
+- Bump gradle/actions from 3 to 4 in /.github/workflows
+- Update android.yml
+- Bump dependabot/fetch-metadata from 2.2.0 to 2.4.0 in /.github/workflows
+- Bump gradle/gradle-build-action from 2 to 3 in /.github/workflows
+- Bump actions/checkout from 4 to 5 in /.github/workflows
+- Update dependabot.yml
+- Bump androidx.core:core-ktx from 1.16.0 to 1.17.0
+- Bump kotlinStdlib from 2.2.0 to 2.2.10
+- wrong ver in build.gradle
+- Bump com.android.tools.build:gradle from 8.11.1 to 8.12.0
+- Bump androidx.work:work-runtime-ktx from 2.10.2 to 2.10.3
+- Bump androidx.navigation:navigation-fragment-ktx from 2.9.2 to 2.9.3
+- Bump androidx.lifecycle:lifecycle-viewmodel-ktx from 2.9.1 to 2.9.2
+- Bump androidx.navigation:navigation-fragment-ktx from 2.9.1 to 2.9.2
+- Bump com.android.tools.build:gradle from 8.11.0 to 8.11.1
+- bump vername for next build
+- Rm many unused stuff, update gradle to 8.11, clean commented stuff
+- Bump androidx.navigation:navigation-fragment-ktx from 2.9.0 to 2.9.1
+- Bump kotlinStdlib from 2.1.21 to 2.2.0
+- Bump androidx.work:work-runtime-ktx from 2.10.1 to 2.10.2
+- Update dependabot-auto-merge.yml
+- Update dependabot-auto-approve.yml
+- Update android.yml
+- Update FUNDING.yml (or should remove it to use the def.)
+- Bump androidx.lifecycle:lifecycle-viewmodel-ktx from 2.9.0 to 2.9.1
+- Bump androidx.appcompat:appcompat from 1.6.1 to 1.7.1
+- Bump androidx.lifecycle:lifecycle-viewmodel-ktx from 2.6.1 to 2.9.0
+- Bump com.android.tools.build:gradle from 8.10.0 to 8.10.1
+- Bump kotlinStdlib from 2.1.20 to 2.1.21
+- Bump androidx.navigation:navigation-fragment-ktx from 2.8.9 to 2.9.0
+- Bump com.android.tools.build:gradle from 8.9.2 to 8.10.0
