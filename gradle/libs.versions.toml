@@ -7,7 +7,7 @@ kotlinStdlib = "2.4.20"
 lifecycleViewmodelKtx = "2.11.0"
 lifecycleRuntimeKtx = "2.11.0"
 material = "1.14.0"
-navigationFragmentKtx = "2.10.0"
+navigationFragmentKtx = "2.10.1"
 recyclerview = "1.4.0"
 workRuntimeKtx = "2.11.2"
 [libraries]
