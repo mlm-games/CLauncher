@@ -9,7 +9,7 @@ lifecycleRuntimeKtx = "2.11.0"
 material = "1.14.0"
 navigationFragmentKtx = "2.10.1"
 recyclerview = "1.4.0"
-workRuntimeKtx = "2.11.2"
+workRuntimeKtx = "2.12.0"
 [libraries]
 activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
